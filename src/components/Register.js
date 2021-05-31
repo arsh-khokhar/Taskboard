@@ -1,10 +1,11 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {Redirect} from 'react-router-dom';
 import Axios from 'axios';
 
 function Register() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [isValidated, setValidated] = useState(false);
 
 	const onSubmitForm = async (e) => {
 		e.preventDefault();
