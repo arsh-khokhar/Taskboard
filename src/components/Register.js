@@ -5,7 +5,6 @@ import Axios from 'axios';
 function Register() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [isValidated, setValidated] = useState(false);
 
 	const onSubmitForm = async (e) => {
 		e.preventDefault();
