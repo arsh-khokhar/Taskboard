@@ -1,110 +1,170 @@
 import React, {useState, useRef, useEffect} from 'react';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 
-function Board({data}) {
-	const [list, setList] = useState(data);
-	const [dragging, setDragging] = useState(false);
+const itemsFromBackend = [
+	{id: '1', content: 'First task'},
+	{id: '2', content: 'Second task'},
+	{id: '3', content: 'Third task'},
+	{id: '4', content: 'Fourth task'},
+	{id: '5', content: 'Fifth task'},
+];
 
-	useEffect(() => {
-		setList(data);
-	}, [setList, data]);
+const columnsFromBackend = {
+	['1']: {
+		name: 'Requested',
+		items: itemsFromBackend,
+	},
+	['2']: {
+		name: 'To do',
+		items: [],
+	},
+	['3']: {
+		name: 'In Progress',
+		items: [],
+	},
+	['4']: {
+		name: 'Done',
+		items: [],
+	},
+};
 
-	const dragItem = useRef();
-	const dragItemNode = useRef();
+const onDragEnd = (result, columns, setColumns) => {
+	if (!result.destination) return;
+	const {source, destination} = result;
 
-	const handletDragStart = (e, item) => {
-		console.log('Starting to drag', item);
-
-		dragItemNode.current = e.target;
-		dragItemNode.current.addEventListener('dragend', handleDragEnd);
-		dragItem.current = item;
-
-		setTimeout(() => {
-			setDragging(true);
-		}, 0);
-	};
-	const handleDragEnter = (e, targetItem) => {
-		console.log('Entering a drag target', targetItem);
-		if (dragItemNode.current !== e.target) {
-			console.log('Target is NOT the same as dragged item');
-			setList((oldList) => {
-				let newList = JSON.parse(JSON.stringify(oldList));
-				newList[targetItem.groupI].items.splice(
-					targetItem.itemI,
-					0,
-					newList[dragItem.current.groupI].items.splice(
-						dragItem.current.itemI,
-						1
-					)[0]
-				);
-				dragItem.current = targetItem;
-				localStorage.setItem('List', JSON.stringify(newList));
-				return newList;
-			});
-		}
-	};
-	const handleDragEnd = (e) => {
-		setDragging(false);
-		dragItem.current = null;
-		dragItemNode.current.removeEventListener('dragend', handleDragEnd);
-		dragItemNode.current = null;
-	};
-	const getStyles = (item) => {
-		if (
-			dragItem.current.groupI === item.groupI &&
-			dragItem.current.itemI === item.itemI
-		) {
-			return 'dnd-item current';
-		}
-		return 'dnd-item';
-	};
-
-	if (list) {
-		return (
-			<div className="dnd">
-				{list.map((group, groupI) => (
-					<div
-						key={group.title}
-						onDragEnter={
-							dragging && !group.items.length
-								? (e) => handleDragEnter(e, {groupI, itemI: 0})
-								: null
-						}
-						className="dnd-group"
-					>
-						<p>{group.title}</p>
-						{group.items.map((item, itemI) => (
-							<div
-								draggable
-								key={item}
-								onDragStart={(e) =>
-									handletDragStart(e, {groupI, itemI})
-								}
-								onDragEnter={
-									dragging
-										? (e) => {
-												handleDragEnter(e, {
-													groupI,
-													itemI,
-												});
-										  }
-										: null
-								}
-								className={
-									dragging
-										? getStyles({groupI, itemI})
-										: 'dnd-item'
-								}
-							>
-								{item}
-							</div>
-						))}
-					</div>
-				))}
-			</div>
-		);
+	if (source.droppableId !== destination.droppableId) {
+		const sourceColumn = columns[source.droppableId];
+		const destColumn = columns[destination.droppableId];
+		const sourceItems = [...sourceColumn.items];
+		const destItems = [...destColumn.items];
+		const [removed] = sourceItems.splice(source.index, 1);
+		destItems.splice(destination.index, 0, removed);
+		setColumns({
+			...columns,
+			[source.droppableId]: {
+				...sourceColumn,
+				items: sourceItems,
+			},
+			[destination.droppableId]: {
+				...destColumn,
+				items: destItems,
+			},
+		});
 	} else {
-		return null;
+		const column = columns[source.droppableId];
+		const copiedItems = [...column.items];
+		const [removed] = copiedItems.splice(source.index, 1);
+		copiedItems.splice(destination.index, 0, removed);
+		setColumns({
+			...columns,
+			[source.droppableId]: {
+				...column,
+				items: copiedItems,
+			},
+		});
 	}
+};
+
+function Board() {
+	const [columns, setColumns] = useState(columnsFromBackend);
+	return (
+		<div
+			style={{display: 'flex', justifyContent: 'center', height: '100%'}}
+		>
+			<DragDropContext
+				onDragEnd={(result) => onDragEnd(result, columns, setColumns)}
+			>
+				{Object.entries(columns).map(([columnId, column], index) => {
+					return (
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+							}}
+							key={columnId}
+						>
+							<h2>{column.name}</h2>
+							<div style={{margin: 8}}>
+								<Droppable
+									droppableId={columnId}
+									key={columnId}
+								>
+									{(provided, snapshot) => {
+										return (
+											<div
+												{...provided.droppableProps}
+												ref={provided.innerRef}
+												style={{
+													background:
+														snapshot.isDraggingOver
+															? 'lightblue'
+															: 'lightgrey',
+													padding: 4,
+													width: 250,
+													minHeight: 500,
+												}}
+											>
+												{column.items.map(
+													(item, index) => {
+														return (
+															<Draggable
+																key={item.id}
+																draggableId={
+																	item.id
+																}
+																index={index}
+															>
+																{(
+																	provided,
+																	snapshot
+																) => {
+																	return (
+																		<div
+																			ref={
+																				provided.innerRef
+																			}
+																			{...provided.draggableProps}
+																			{...provided.dragHandleProps}
+																			style={{
+																				userSelect:
+																					'none',
+																				padding: 16,
+																				margin: '0 0 8px 0',
+																				minHeight:
+																					'50px',
+																				backgroundColor:
+																					snapshot.isDragging
+																						? '#263B4A'
+																						: '#456C86',
+																				color: 'white',
+																				...provided
+																					.draggableProps
+																					.style,
+																			}}
+																		>
+																			{
+																				item.content
+																			}
+																		</div>
+																	);
+																}}
+															</Draggable>
+														);
+													}
+												)}
+												{provided.placeholder}
+											</div>
+										);
+									}}
+								</Droppable>
+							</div>
+						</div>
+					);
+				})}
+			</DragDropContext>
+		</div>
+	);
 }
 
 export default Board;
