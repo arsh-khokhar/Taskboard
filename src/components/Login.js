@@ -19,11 +19,9 @@ function Login() {
 				password: loginData.password,
 			})
 				.then((response) => {
-					// console.log('Response received');
-					// console.log(response.status);
-					// console.log(response.data);
 					if (response.status === 200) {
 						sessionStorage.setItem('auth-token', response.data);
+						sessionStorage.setItem('auth-user', email);
 						setLoginSuccess(true);
 					} else {
 						setLoginSuccess(false);
@@ -91,8 +89,6 @@ function Login() {
 			</form>
 		</Fragment>
 	);
-
-	//<Redirect to="/board" />;
 }
 
 export default Login;
