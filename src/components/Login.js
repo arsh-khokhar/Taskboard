@@ -24,6 +24,7 @@ function Login() {
 					console.log(response.status);
 					console.log(response.data);
 					if (response.status === 200) {
+						sessionStorage.setItem('auth-token', response.data);
 						setLoginSuccess(true);
 					} else {
 						setLoginSuccess(false);
