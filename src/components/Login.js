@@ -1,5 +1,5 @@
-import React, {Fragment, useState} from 'react';
-import {Redirect} from 'react-router-dom';
+import React, {Fragment, useState, useEffect} from 'react';
+import {useHistory} from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 import Axios from 'axios';
 
@@ -8,8 +8,7 @@ function Login() {
 	const [password, setPassword] = useState('');
 	const [loginSuccess, setLoginSuccess] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
-
-	//Axios.defaults.withCredentials = true;
+	const history = useHistory();
 
 	const onSubmitForm = async (e) => {
 		e.preventDefault();
@@ -20,9 +19,9 @@ function Login() {
 				password: loginData.password,
 			})
 				.then((response) => {
-					console.log('Response received');
-					console.log(response.status);
-					console.log(response.data);
+					// console.log('Response received');
+					// console.log(response.status);
+					// console.log(response.data);
 					if (response.status === 200) {
 						sessionStorage.setItem('auth-token', response.data);
 						setLoginSuccess(true);
@@ -40,6 +39,14 @@ function Login() {
 			console.error(error);
 		}
 	};
+
+	useEffect(() => {
+		if (loginSuccess === true) {
+			history.push({
+				pathname: '/',
+			});
+		}
+	}, [loginSuccess]);
 
 	if (loginSuccess === false) {
 		return (
@@ -63,9 +70,6 @@ function Login() {
 				</form>
 			</Fragment>
 		);
-	}
-	if (loginSuccess === true) {
-		return <Redirect to="/login" />;
 	}
 	return (
 		<Fragment>

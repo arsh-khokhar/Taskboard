@@ -1,10 +1,11 @@
 import {React, useState, useEffect} from 'react';
 import Axios from 'axios';
+import {Link, Redirect} from 'react-router-dom';
 
 function Home() {
-	const [auth_user, setAuthUser] = useState(null);
+	const [auth_user, setAuthUser] = useState(false);
 
-	const getBoards = () => {
+	const getBoards = async () => {
 		try {
 			Axios.get('http://localhost:5000/api/boards/', {
 				headers: {
@@ -12,9 +13,11 @@ function Home() {
 				},
 			})
 				.then((response) => {
-					console.log('Response received');
 					console.log(response.status);
-					console.log(response.data);
+					if (response.status === 200) {
+						console.log('setting auth user true');
+						setAuthUser(true);
+					}
 				})
 				.catch((error) => {
 					console.log(error.response.data);
@@ -25,11 +28,28 @@ function Home() {
 	};
 
 	useEffect(() => {
+		console.log('this thing called');
 		getBoards();
-	});
-	return (
+	}, []);
+
+	useEffect(() => {
+		console.log(auth_user);
+	}, [auth_user]);
+
+	return auth_user ? (
 		<div>
-			<h1> Welcome to the homepage </h1>
+			<h1> Welcome Authenticated user </h1>
+		</div>
+	) : (
+		<div>
+			<h1>
+				Please login{' '}
+				<ul>
+					<li>
+						<Link to="/login">here!</Link>
+					</li>
+				</ul>
+			</h1>
 		</div>
 	);
 }
