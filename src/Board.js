@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState} from 'react';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 
 const itemsFromBackend = [
@@ -65,7 +65,7 @@ const onDragEnd = (result, columns, setColumns) => {
 	}
 };
 
-function Board() {
+function Board(props) {
 	const [columns, setColumns] = useState(columnsFromBackend);
 	return (
 		<div

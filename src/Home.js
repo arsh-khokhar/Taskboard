@@ -5,6 +5,7 @@ import {Card, CardColumns} from 'react-bootstrap';
 
 function Home() {
 	const [auth_user, setAuthUser] = useState(false);
+	const [user_boards, setUserBoards] = useState(null);
 
 	const getBoards = async () => {
 		try {
@@ -15,10 +16,12 @@ function Home() {
 				},
 			})
 				.then((response) => {
-					console.log(response.data);
-					console.log(response.status);
+					console.log('Here I am');
+					setUserBoards(response.data);
+					//console.log(response.data);
+					//console.log(response.status);
 					if (response.status === 200) {
-						console.log('setting auth user true');
+						//console.log('setting auth user true');
 						setAuthUser(true);
 					}
 				})
@@ -31,7 +34,7 @@ function Home() {
 	};
 
 	useEffect(() => {
-		console.log('this thing called');
+		// console.log('this thing called');
 		getBoards();
 	}, []);
 
@@ -39,51 +42,35 @@ function Home() {
 		console.log(auth_user);
 	}, [auth_user]);
 
+	useEffect(() => {
+		console.log(user_boards);
+	}, [user_boards]);
+
 	return auth_user ? (
 		<Fragment>
 			<CardColumns>
-				<Card className="text-center">
-					<Card.Body>
-						<Card.Title>Card title</Card.Title>
-						<Card.Text>
-							This card has supporting text below as a natural
-							lead-in to additional content.{' '}
-						</Card.Text>
-						<Card.Text>
-							<small className="text-muted">
-								Last updated 3 mins ago
-							</small>
-						</Card.Text>
-					</Card.Body>
-				</Card>
-				<Card className="text-center">
-					<Card.Body>
-						<Card.Title>Card title</Card.Title>
-						<Card.Text>
-							This card has supporting text below as a natural
-							lead-in to additional content.{' '}
-						</Card.Text>
-						<Card.Text>
-							<small className="text-muted">
-								Last updated 3 mins ago
-							</small>
-						</Card.Text>
-					</Card.Body>
-				</Card>
-				<Card className="text-center">
-					<Card.Body>
-						<Card.Title>Card title</Card.Title>
-						<Card.Text>
-							This card has supporting text below as a natural
-							lead-in to additional content.{' '}
-						</Card.Text>
-						<Card.Text>
-							<small className="text-muted">
-								Last updated 3 mins ago
-							</small>
-						</Card.Text>
-					</Card.Body>
-				</Card>
+				{user_boards.map((item, index) => {
+					return (
+						<Link
+							to={{
+								pathname: '/board',
+								state: {board_id: item.board_id},
+							}}
+							key={index}
+						>
+							<Card className="text-center">
+								<Card.Body>
+									<Card.Title>{item.title}</Card.Title>
+									<Card.Text>
+										<small className="text-muted">
+											Owner: {item.owner_id}
+										</small>
+									</Card.Text>
+								</Card.Body>
+							</Card>
+						</Link>
+					);
+				})}
 			</CardColumns>
 		</Fragment>
 	) : (
