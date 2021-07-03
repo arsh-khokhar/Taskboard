@@ -16,12 +16,8 @@ function Home() {
 				},
 			})
 				.then((response) => {
-					console.log('Here I am');
 					setUserBoards(response.data);
-					//console.log(response.data);
-					//console.log(response.status);
 					if (response.status === 200) {
-						//console.log('setting auth user true');
 						setAuthUser(true);
 					}
 				})
@@ -34,17 +30,12 @@ function Home() {
 	};
 
 	useEffect(() => {
-		// console.log('this thing called');
 		getBoards();
 	}, []);
 
-	useEffect(() => {
-		console.log(auth_user);
-	}, [auth_user]);
+	useEffect(() => {}, [auth_user]);
 
-	useEffect(() => {
-		console.log(user_boards);
-	}, [user_boards]);
+	useEffect(() => {}, [user_boards]);
 
 	return auth_user ? (
 		<Fragment>

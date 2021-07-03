@@ -66,6 +66,7 @@ const onDragEnd = (result, columns, setColumns) => {
 };
 
 function Board(props) {
+	console.log(props.location.state.board_id);
 	const [columns, setColumns] = useState(columnsFromBackend);
 	return (
 		<div
