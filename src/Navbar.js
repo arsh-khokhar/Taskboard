@@ -1,10 +1,9 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
 import {Navbar, Nav, NavDropdown} from 'react-bootstrap';
 
 function Navigation() {
 	return (
-		<Navbar bg="dark" expand="lg" variant="dark">
+		<Navbar expand="lg" variant="dark" className="navbar">
 			<Navbar.Brand href="/">Taskboard</Navbar.Brand>
 			<Navbar.Toggle aria-controls="basic-navbar-nav" />
 			<Navbar.Collapse id="basic-navbar-nav">

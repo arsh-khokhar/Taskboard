@@ -2,6 +2,8 @@ import React, {Fragment, useEffect, useState} from 'react';
 import {Redirect} from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 import Axios from 'axios';
+import Form from 'react-bootstrap/Form';
+import {Button} from 'react-bootstrap';
 
 function Register() {
 	const [email, setEmail] = useState('');
@@ -37,53 +39,42 @@ function Register() {
 			console.error(error);
 		}
 	};
-	{
-		/* <Redirect to="/board" />; */
-	}
-	if (registerSuccess === false) {
-		return (
-			<Fragment>
-				<Alert variant="danger">{errorMessage}</Alert>
-				<h1 className="text-center">Register</h1>
-				<form onSubmit={onSubmitForm}>
-					<input
-						type="text"
-						value={email}
-						placeholder="Email"
-						onChange={(e) => setEmail(e.target.value)}
-					/>
-					<input
-						type="text"
-						value={password}
-						placeholder="Password"
-						onChange={(e) => setPassword(e.target.value)}
-					/>
-					<button>Submit</button>
-				</form>
-			</Fragment>
-		);
-	}
+
 	if (registerSuccess === true) {
 		return <Redirect to="/login" />;
 	}
 	return (
 		<Fragment>
-			<h1 className="text-center">Register</h1>
-			<form onSubmit={onSubmitForm}>
-				<input
-					type="text"
-					value={email}
-					placeholder="Email"
-					onChange={(e) => setEmail(e.target.value)}
-				/>
-				<input
-					type="text"
-					value={password}
-					placeholder="Password"
-					onChange={(e) => setPassword(e.target.value)}
-				/>
-				<button>Submit</button>
-			</form>
+			<Alert
+				style={{
+					visibility:
+						registerSuccess === false ? 'visible' : 'hidden',
+				}}
+				variant="danger"
+			>
+				{errorMessage}
+			</Alert>
+			<Form className="creds" onSubmit={onSubmitForm}>
+				<Form.Group controlId="formBasicEmail">
+					<Form.Label>Email address</Form.Label>
+					<Form.Control
+						type="email"
+						placeholder="Enter email"
+						onChange={(e) => setEmail(e.target.value)}
+					/>
+				</Form.Group>
+				<Form.Group controlId="formBasicPassword">
+					<Form.Label>Password</Form.Label>
+					<Form.Control
+						type="password"
+						placeholder="Password"
+						onChange={(e) => setPassword(e.target.value)}
+					/>
+				</Form.Group>
+				<Button variant="success" type="submit" block>
+					Create account
+				</Button>
+			</Form>
 		</Fragment>
 	);
 }

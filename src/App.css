@@ -1,68 +1,107 @@
 .App {
-	text-align: center;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-family: 'Lato';
 }
 
-.App-logo {
-	height: 40vmin;
-	pointer-events: none;
+body {
+	margin-top: 5rem;
+	background-image: url('mountain.jpg');
+	background-size: cover;
+	background-attachment: fixed;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-	.App-logo {
-		animation: App-logo-spin infinite 20s linear;
-	}
+body::-webkit-scrollbar {
+	width: 1em;
+	background-color: #333333;
 }
 
-.App-header {
-	background-color: #61dafb;
-	min-height: 100vh;
-	display: flex;
-	/* flex-direction: column;
-  align-items: center;
-  justify-content: center; */
-	font-size: calc(10px + 2vmin);
-	color: white;
+body::-webkit-scrollbar-track {
+	box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
 
-.App-link {
-	color: #61dafb;
+body::-webkit-scrollbar-thumb {
+	background-color: #888888;
 }
 
-@keyframes App-logo-spin {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
+.list {
+	padding-top: 1rem;
+	padding-bottom: 0.5rem;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	width: 20rem;
+	border-radius: 0.5rem;
 }
 
-.dnd {
+.card {
+	background-color: white;
 	padding: 0.5rem;
-	display: grid;
+	justify-content: left;
+	align-items: stretch;
+	justify-items: left;
+	justify-self: left;
+	text-justify: left;
+	min-height: 2.5rem;
+	margin-bottom: 0.5em;
+	border-radius: 0.25rem;
+}
+
+.navbar {
+	position: fixed;
+	top: 0;
+	left: 0;
 	width: 100%;
+	background-color: #222222aa;
+}
+
+.scrolled {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+.creds {
+	background-color: #222222dd;
+	color: white;
+	width: 30rem;
+	padding: 1.5rem;
+	border-radius: 0.25rem;
+	position: absolute;
+	left: 50%;
+	right: 50%;
+	transform: translate(-50%, 20%);
+}
+
+.board-card {
+	background-color: #222222dd;
+	color: white;
+	margin: 1rem;
+	width: 15rem;
+	height: 8rem;
+	border-color: #00000000;
+}
+
+.board-task-button {
+	background-color: #ffffff44;
+	color: white;
+	width: 100%;
+	border-color: #00000000;
+}
+
+.board-list-button {
+	background-color: #222222aa;
+	color: white;
+	min-width: 20rem;
+	width: 20rem;
+	margin: 0.5rem;
 	height: 100%;
-	grid-template-columns: repeat(auto-fill, 300px);
-	flex-direction: column;
-	align-items: start;
+	border-color: #00000000;
 }
 
-.dnd-group {
-	margin: 5%;
-	background-color: #aaaaaa;
-	border-radius: 5px;
-}
-
-.dnd-item {
-	margin: 2%;
-	min-height: 50px;
-	background-color: #dddddd;
-	border-radius: 5px;
-	color: #1f1f1f;
-	text-align: center;
-}
-
-.current {
-	opacity: 50%;
+.new-task-form {
+	background-color: #ffffff55;
+	color: white;
+	padding: 0.5rem;
+	height: 100%;
+	border-color: #00000000;
+	border-radius: 0.25rem;
 }

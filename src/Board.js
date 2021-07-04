@@ -1,33 +1,11 @@
-import {Fragment, React, useState, useEffect} from 'react';
+import {Fragment, React, useState, useEffect, useRef} from 'react';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import Axios from 'axios';
-
-const itemsFromBackend = [
-	{task_id: 1, title: 'First task', description: null},
-	{task_id: 2, title: 'Second task', description: null},
-	{task_id: 3, title: 'Third task', description: null},
-	{task_id: 4, title: 'Fourth task', description: null},
-	{task_id: 5, title: 'Fifth task', description: null},
-];
-
-const columnsFromBackend = {
-	1: {
-		title: 'Requested',
-		tasks: itemsFromBackend,
-	},
-	2: {
-		title: 'To do',
-		tasks: [],
-	},
-	3: {
-		title: 'In Progress',
-		tasks: [],
-	},
-	4: {
-		title: 'Done',
-		tasks: [],
-	},
-};
+import './App.css';
+import {Button} from 'react-bootstrap';
+import {Card} from 'react-bootstrap';
+import Form from 'react-bootstrap/Form';
+import Jumbotron from 'react-bootstrap/Jumbotron';
 
 const onDragEnd = (result, columns, setColumns) => {
 	if (!result.destination) return;
@@ -39,7 +17,6 @@ const onDragEnd = (result, columns, setColumns) => {
 		const sourceItems = [...sourceColumn.tasks];
 		const destItems = [...destColumn.tasks];
 		const [removed] = sourceItems.splice(source.index, 1);
-		destItems.splice(destination.index, 0, removed);
 		setColumns({
 			...columns,
 			[source.droppableId]: {
@@ -67,14 +44,21 @@ const onDragEnd = (result, columns, setColumns) => {
 };
 
 function Board(props) {
-	const board_id = props.location.state.board_id;
-	const [columns, setColumns] = useState(columnsFromBackend);
+	const boardId = props.location.state.board_id;
+	const [columns, setColumns] = useState(null);
 	const [board_title, setBoardTitle] = useState(null);
+	const [doReload, setReload] = useState(false);
 	const [loaded, setLoaded] = useState(false);
+	const [activeForm, setActiveForm] = useState(null);
+	const [newListTitle, setNewListTitle] = useState(null);
+	const [newTaskTitle, setNewTaskTitle] = useState(null);
+	const [newTaskDesc, setNewTaskDesc] = useState(null);
+	const listFormRef = useRef(null);
+	const taskFormRef = useRef(null);
 
 	const getBoardContents = async () => {
 		try {
-			Axios.get('http://localhost:5000/api/boards/' + board_id, {
+			Axios.get('http://localhost:5000/api/boards/' + boardId, {
 				headers: {
 					'auth-user': sessionStorage.getItem('auth-user'),
 					'auth-token': sessionStorage.getItem('auth-token'),
@@ -93,21 +77,109 @@ function Board(props) {
 		}
 	};
 
+	const addNewList = async (e) => {
+		e.preventDefault();
+		setReload(false);
+		try {
+			Axios.post(
+				'http://localhost:5000/api/lists/',
+				{board_id: boardId, title: newListTitle},
+				{
+					headers: {
+						'auth-user': sessionStorage.getItem('auth-user'),
+						'auth-token': sessionStorage.getItem('auth-token'),
+					},
+				}
+			)
+				.then((response) => {
+					if (response.status === 200) {
+						setActiveForm(false);
+						setReload(true);
+					}
+				})
+				.catch((error) => {
+					console.error(error);
+				});
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	const addNewTask = async (e) => {
+		e.preventDefault();
+		setReload(false);
+		try {
+			Axios.post(
+				'http://localhost:5000/api/tasks/',
+				{
+					title: newTaskTitle,
+					description: newTaskDesc,
+					list_id: activeForm,
+				},
+				{
+					headers: {
+						'auth-user': sessionStorage.getItem('auth-user'),
+						'auth-token': sessionStorage.getItem('auth-token'),
+					},
+				}
+			)
+				.then((response) => {
+					if (response.status === 200) {
+						setActiveForm(false);
+						setReload(true);
+					}
+				})
+				.catch((error) => {
+					console.error(error);
+				});
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
 	useEffect(() => {
 		getBoardContents();
+		clearFormData();
 	}, []);
 
-	useEffect(() => {}, [board_title]);
+	useEffect(() => {
+		getBoardContents();
+		clearFormData();
+	}, [doReload]);
+
+	useEffect(() => {
+		clearFormData();
+	}, [board_title, activeForm]);
+
+	const clearFormData = () => {
+		setNewListTitle(null);
+		setNewTaskTitle(null);
+		setNewTaskDesc(null);
+		if (taskFormRef && taskFormRef.current) {
+			taskFormRef.current.reset();
+		}
+		if (listFormRef && listFormRef.current) {
+			listFormRef.current.reset();
+		}
+	};
 
 	return loaded ? (
 		<Fragment>
-			<h1>{board_title}</h1>
+			<h1
+				style={{
+					margin: '1rem',
+					marginLeft: '2rem',
+					color: 'white',
+				}}
+			>
+				{board_title}
+			</h1>
 			<div
 				style={{
-					margin: 10,
 					display: 'flex',
 					justifyContent: 'left',
 					height: '100%',
+					margin: '0.75rem',
 				}}
 			>
 				<DragDropContext
@@ -122,11 +194,10 @@ function Board(props) {
 									style={{
 										display: 'flex',
 										flexDirection: 'column',
-										alignItems: 'center',
+										alignItems: 'left',
 									}}
 									key={columnId}
 								>
-									<h2>{column.title}</h2>
 									<div style={{margin: 8}}>
 										<Droppable
 											droppableId={columnId}
@@ -135,18 +206,24 @@ function Board(props) {
 											{(provided, snapshot) => {
 												return (
 													<div
+														class="list"
 														{...provided.droppableProps}
 														ref={provided.innerRef}
 														style={{
 															background:
 																snapshot.isDraggingOver
-																	? 'lightblue'
-																	: 'lightgrey',
-															padding: 4,
-															width: 250,
-															minHeight: 500,
+																	? '#444444aa'
+																	: '#222222aa',
 														}}
 													>
+														<h5
+															style={{
+																margin: '0 0 1rem 0.25rem',
+																color: 'white',
+															}}
+														>
+															{column.title}
+														</h5>
 														{column.tasks.map(
 															(task, index) => {
 																return (
@@ -169,6 +246,7 @@ function Board(props) {
 																		) => {
 																			return (
 																				<div
+																					className="card"
 																					ref={
 																						provided.innerRef
 																					}
@@ -177,23 +255,25 @@ function Board(props) {
 																					style={{
 																						userSelect:
 																							'none',
-																						padding: 16,
-																						margin: '0 0 8px 0',
-																						minHeight:
-																							'50px',
-																						backgroundColor:
-																							snapshot.isDragging
-																								? '#263B4A'
-																								: '#456C86',
-																						color: 'white',
+																						border: snapshot.isDragging
+																							? '#FF0000'
+																							: '#FFFFFF',
+																						color: 'black',
 																						...provided
 																							.draggableProps
 																							.style,
 																					}}
 																				>
-																					{
-																						task.title
-																					}
+																					<large>
+																						{
+																							task.title
+																						}
+																					</large>
+																					<small className="text-muted">
+																						{
+																							task.description
+																						}
+																					</small>
 																				</div>
 																			);
 																		}}
@@ -201,6 +281,99 @@ function Board(props) {
 																);
 															}
 														)}
+														<Button
+															variant="light"
+															className={{
+																'text-center': true,
+																'board-task-button': true,
+															}}
+															onClick={(e) =>
+																setActiveForm(
+																	columnId
+																)
+															}
+															style={{
+																display:
+																	activeForm ===
+																	columnId
+																		? 'none'
+																		: 'block',
+															}}
+														>
+															+ Add another task
+														</Button>
+														<div
+															className="new-task-form"
+															style={{
+																display:
+																	activeForm ===
+																	columnId
+																		? 'block'
+																		: 'none',
+															}}
+														>
+															<Form
+																ref={
+																	taskFormRef
+																}
+																onSubmit={
+																	addNewTask
+																}
+															>
+																<Form.Group>
+																	<Form.Control
+																		placeholder="Title"
+																		onChange={(
+																			e
+																		) =>
+																			setNewTaskTitle(
+																				e
+																					.target
+																					.value
+																			)
+																		}
+																	/>
+																</Form.Group>
+																<Form.Group>
+																	<Form.Control
+																		as="textarea"
+																		rows={3}
+																		placeholder="Description"
+																		onChange={(
+																			e
+																		) =>
+																			setNewTaskDesc(
+																				e
+																					.target
+																					.value
+																			)
+																		}
+																	/>
+																</Form.Group>
+																<Button
+																	variant="light"
+																	type="submit"
+																>
+																	Add Task
+																</Button>
+																<Button
+																	variant="dark"
+																	style={{
+																		marginLeft:
+																			'0.5rem',
+																	}}
+																	onClick={(
+																		e
+																	) =>
+																		setActiveForm(
+																			null
+																		)
+																	}
+																>
+																	Discard
+																</Button>
+															</Form>
+														</div>
 														{provided.placeholder}
 													</div>
 												);
@@ -212,6 +385,50 @@ function Board(props) {
 						}
 					)}
 				</DragDropContext>
+				<Button
+					variant="light"
+					className={{
+						'text-center': true,
+						'board-list-button': true,
+					}}
+					onClick={(e) => setActiveForm('list')}
+					style={{
+						display: activeForm === 'list' ? 'none' : 'block',
+					}}
+				>
+					+ Add new list
+				</Button>
+				<div
+					className="new-task-form"
+					style={{
+						display: activeForm === 'list' ? 'block' : 'none',
+						width: '20rem',
+						margin: '0.5rem',
+					}}
+				>
+					<Form ref={listFormRef} onSubmit={addNewList}>
+						<Form.Group>
+							<Form.Control
+								placeholder="Title"
+								onChange={(e) =>
+									setNewListTitle(e.target.value)
+								}
+							/>
+						</Form.Group>
+						<Button variant="light" type="submit">
+							Add List
+						</Button>
+						<Button
+							variant="dark"
+							style={{
+								marginLeft: '0.5rem',
+							}}
+							onClick={(e) => clearFormData()}
+						>
+							Discard
+						</Button>
+					</Form>
+				</div>
 			</div>
 		</Fragment>
 	) : (

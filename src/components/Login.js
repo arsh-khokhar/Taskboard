@@ -1,7 +1,9 @@
 import React, {Fragment, useState, useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {Link, Redirect, useHistory} from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 import Axios from 'axios';
+import Form from 'react-bootstrap/Form';
+import {Button} from 'react-bootstrap';
 
 function Login() {
 	const [email, setEmail] = useState('');
@@ -46,47 +48,47 @@ function Login() {
 		}
 	}, [loginSuccess]);
 
-	if (loginSuccess === false) {
-		return (
-			<Fragment>
-				<Alert variant="danger">{errorMessage}</Alert>
-				<h1 className="text-center">Login</h1>
-				<form onSubmit={onSubmitForm}>
-					<input
-						type="text"
-						value={email}
-						placeholder="Email"
+	return (
+		<Fragment>
+			<Alert
+				style={{
+					visibility: loginSuccess === false ? 'visible' : 'hidden',
+				}}
+				variant="danger"
+			>
+				{errorMessage}
+			</Alert>
+			<Form className="creds" onSubmit={onSubmitForm}>
+				<Form.Group controlId="formBasicEmail">
+					<Form.Label>Email address</Form.Label>
+					<Form.Control
+						type="email"
+						placeholder="Enter email"
 						onChange={(e) => setEmail(e.target.value)}
 					/>
-					<input
-						type="text"
-						value={password}
+				</Form.Group>
+
+				<Form.Group controlId="formBasicPassword">
+					<Form.Label>Password</Form.Label>
+					<Form.Control
+						type="password"
 						placeholder="Password"
 						onChange={(e) => setPassword(e.target.value)}
 					/>
-					<button>Submit</button>
-				</form>
-			</Fragment>
-		);
-	}
-	return (
-		<Fragment>
-			<h1 className="text-center">Login</h1>
-			<form onSubmit={onSubmitForm}>
-				<input
-					type="text"
-					value={email}
-					placeholder="Email"
-					onChange={(e) => setEmail(e.target.value)}
-				/>
-				<input
-					type="text"
-					value={password}
-					placeholder="Password"
-					onChange={(e) => setPassword(e.target.value)}
-				/>
-				<button>Submit</button>
-			</form>
+				</Form.Group>
+				<Button variant="primary" type="submit" block>
+					Login
+				</Button>
+				<Form.Text
+					className="text-center"
+					style={{margin: '1rem 0 1rem 0'}}
+				>
+					Not registered yet?
+				</Form.Text>
+				<Button href="/register" block variant="outline-light">
+					Create an account
+				</Button>
+			</Form>
 		</Fragment>
 	);
 }
