@@ -1,107 +1,115 @@
 .App {
-	font-family: 'Lato';
+  font-family: 'Lato';
 }
 
 body {
-	margin-top: 5rem;
-	background-image: url('mountain.jpg');
-	background-size: cover;
-	background-attachment: fixed;
+  margin-top: 5rem;
+  background-image: url('mountain.jpg');
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 body::-webkit-scrollbar {
-	width: 1em;
-	background-color: #333333;
+  width: 1em;
+  background-color: #333333;
 }
 
 body::-webkit-scrollbar-track {
-	box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
 
 body::-webkit-scrollbar-thumb {
-	background-color: #888888;
+  background-color: #888888;
 }
 
 .list {
-	padding-top: 1rem;
-	padding-bottom: 0.5rem;
-	padding-left: 0.5rem;
-	padding-right: 0.5rem;
-	width: 20rem;
-	border-radius: 0.5rem;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  width: 20rem;
+  border-radius: 0.5rem;
 }
 
 .card {
-	background-color: white;
-	padding: 0.5rem;
-	justify-content: left;
-	align-items: stretch;
-	justify-items: left;
-	justify-self: left;
-	text-justify: left;
-	min-height: 2.5rem;
-	margin-bottom: 0.5em;
-	border-radius: 0.25rem;
+  background-color: white;
+  padding: 0.5rem;
+  justify-content: left;
+  align-items: stretch;
+  justify-items: left;
+  justify-self: left;
+  text-justify: left;
+  min-height: 2.5rem;
+  margin-bottom: 0.5em;
+  border-radius: 0.25rem;
 }
 
 .navbar {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	background-color: #222222aa;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #222222aa;
 }
 
 .scrolled {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
 }
 
 .creds {
-	background-color: #222222dd;
-	color: white;
-	width: 30rem;
-	padding: 1.5rem;
-	border-radius: 0.25rem;
-	position: absolute;
-	left: 50%;
-	right: 50%;
-	transform: translate(-50%, 20%);
+  background-color: #222222dd;
+  color: white;
+  width: 30rem;
+  padding: 1.5rem;
+  border-radius: 0.25rem;
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  transform: translate(-50%, 20%);
 }
 
 .board-card {
-	background-color: #222222dd;
-	color: white;
-	margin: 1rem;
-	width: 15rem;
-	height: 8rem;
-	border-color: #00000000;
+  background-color: #222222dd;
+  color: white;
+  margin: 1rem;
+  width: 15rem;
+  height: 8rem;
+  border-color: #00000000;
 }
 
 .board-task-button {
-	background-color: #ffffff44;
-	color: white;
-	width: 100%;
-	border-color: #00000000;
+  background-color: #ffffff44;
+  color: white;
+  width: 100%;
+  border-color: #00000000;
+}
+
+.card-button {
+  background-color: #00000000;
+  width: auto;
+  float: right;
+  height: 0.5rem;
+  border-color: #00000000;
 }
 
 .board-list-button {
-	background-color: #222222aa;
-	color: white;
-	min-width: 20rem;
-	width: 20rem;
-	margin: 0.5rem;
-	height: 100%;
-	border-color: #00000000;
+  background-color: #222222aa;
+  color: white;
+  min-width: 20rem;
+  width: 20rem;
+  margin: 0.5rem;
+  height: 100%;
+  border-color: #00000000;
 }
 
 .new-task-form {
-	background-color: #ffffff55;
-	color: white;
-	padding: 0.5rem;
-	height: 100%;
-	border-color: #00000000;
-	border-radius: 0.25rem;
+  background-color: #ffffff55;
+  color: white;
+  padding: 0.5rem;
+  height: 100%;
+  border-color: #00000000;
+  border-radius: 0.25rem;
 }
