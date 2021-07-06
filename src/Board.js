@@ -1,11 +1,13 @@
 import {Fragment, React, useState, useEffect, useRef} from "react";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
-import {BiEdit} from "react-icons/bi";
+import {BiEdit, BiTrash} from "react-icons/bi";
 import Axios from "axios";
 import "./App.css";
 import {Button} from "react-bootstrap";
+import InputGroup from "react-bootstrap/InputGroup";
 import {Card} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
+import Col from "react-bootstrap/Col";
 
 function Board(props) {
   const boardId = props.location.state.board_id;
@@ -23,12 +25,9 @@ function Board(props) {
   const [newTaskDesc, setNewTaskDesc] = useState(null);
   const listFormRef = useRef(null);
   const taskFormRef = useRef(null);
-  const [movedTask, setMovedTask] = useState(null);
   const [hoveredTask, setHoveredTask] = useState(null);
 
   const syncTaskMove = async () => {
-    console.log("Syncing...");
-    setReload(false);
     try {
       const toSend = columns;
       Axios.post("http://localhost:5000/api/tasks/reorder", toSend, {
@@ -38,9 +37,7 @@ function Board(props) {
         }
       })
         .then(response => {
-          console.log(response.data);
           if (response.status === 200) {
-            setReload(true);
           }
         })
         .catch(error => {
@@ -61,7 +58,6 @@ function Board(props) {
       const destItems = [...destColumn.tasks];
 
       const [removed] = sourceItems.splice(source.index, 1);
-      setMovedTask(removed);
       destItems.splice(destination.index, 0, removed);
       setColumns({
         ...columns,
@@ -79,7 +75,6 @@ function Board(props) {
       const copiedItems = [...column.tasks];
 
       const [removed] = copiedItems.splice(source.index, 1);
-      setMovedTask(removed);
       copiedItems.splice(destination.index, 0, removed);
 
       setColumns({
@@ -145,6 +140,34 @@ function Board(props) {
     }
   };
 
+  const deleteTask = async toDelete => {
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/tasks/delete/",
+        {
+          task_id: toDelete
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const addNewTask = async e => {
     e.preventDefault();
     e.target.reset();
@@ -184,6 +207,80 @@ function Board(props) {
     }
   };
 
+  const updateTask = async e => {
+    e.preventDefault();
+    e.target.reset();
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/tasks/update",
+        {
+          task_id: activeForm.task_id,
+          title: newTaskTitle,
+          description: newTaskDesc
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setActiveForm({
+              type: null,
+              list_id: null,
+              task_id: null
+            });
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateList = async e => {
+    console.log("attempting to update list");
+    e.preventDefault();
+    // e.target.reset();
+    // setReload(false);
+    // try {
+    //   Axios.post(
+    //     "http://localhost:5000/api/tasks/update",
+    //     {
+    //       list_id: activeForm.list_id,
+    //       title: newListTitle,
+    //     },
+    //     {
+    //       headers: {
+    //         "auth-user": sessionStorage.getItem("auth-user"),
+    //         "auth-token": sessionStorage.getItem("auth-token")
+    //       }
+    //     }
+    //   )
+    //     .then(response => {
+    //       if (response.status === 200) {
+    //         setActiveForm({
+    //           type: null,
+    //           list_id: null,
+    //           task_id: null
+    //         });
+    //         setReload(true);
+    //       }
+    //     })
+    //     .catch(error => {
+    //       console.error(error);
+    //     });
+    // } catch (error) {
+    //   console.error(error);
+    // }
+  };
+
   useEffect(() => {
     getBoardContents();
     clearFormData();
@@ -191,12 +288,11 @@ function Board(props) {
 
   useEffect(() => {
     getBoardContents();
-    clearFormData();
   }, [doReload]);
 
   useEffect(() => {
     syncTaskMove();
-  }, [movedTask]);
+  }, [columns]);
 
   useEffect(() => {
     clearFormData();
@@ -225,14 +321,7 @@ function Board(props) {
       >
         {board_title}
       </h1>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "left",
-          height: "100%",
-          margin: "0.75rem"
-        }}
-      >
+      <div className="scrolling">
         <DragDropContext
           onDragEnd={result => onDragEnd(result, columns, setColumns)}
         >
@@ -260,14 +349,55 @@ function Board(props) {
                               : "#222222aa"
                           }}
                         >
-                          <h5
-                            style={{
-                              margin: "0 0 1rem 0.25rem",
-                              color: "white"
-                            }}
+                          <large
+                            style={{marginBottom: "1rem", display: "block"}}
                           >
-                            {column.title}
-                          </h5>
+                            <h4 style={{color: "white", display: "inline"}}>
+                              {column.title}
+                            </h4>
+                            <Button
+                              variant="outline-light"
+                              onClick={e =>
+                                setActiveForm({
+                                  type: "edit_l",
+                                  list_id: columnId,
+                                  task_id: null
+                                })
+                              }
+                              style={{
+                                borderColor: "transparent",
+                                color: "gray",
+                                width: "1.5rem",
+                                height: "1.5rem",
+                                padding: "0rem",
+                                float: "right",
+                                marginBottom: "1rem"
+                              }}
+                            >
+                              <BiTrash size="1.25rem" />
+                            </Button>
+                            <Button
+                              variant="outline-light"
+                              onClick={e =>
+                                setActiveForm({
+                                  type: "edit_l",
+                                  list_id: columnId,
+                                  task_id: null
+                                })
+                              }
+                              style={{
+                                borderColor: "transparent",
+                                color: "gray",
+                                width: "1.5rem",
+                                height: "1.5rem",
+                                padding: "0rem",
+                                float: "right",
+                                marginBottom: "1rem"
+                              }}
+                            >
+                              <BiEdit size="1.25rem" />
+                            </Button>
+                          </large>
                           {column.tasks.map((task, index) => {
                             return (
                               <Draggable
@@ -302,16 +432,33 @@ function Board(props) {
                                               activeForm.task_id ===
                                               task.task_id
                                                 ? "none"
-                                                : "block"
+                                                : "inline"
                                           }}
                                         >
                                           {task.title}
                                         </h6>
                                         <Button
-                                          variant="dark"
-                                          className={{
-                                            "text-center": true
+                                          variant="light"
+                                          style={{
+                                            color: "tomato",
+                                            width: "1.5rem",
+                                            height: "1.5rem",
+                                            padding: "0rem",
+                                            float: "right",
+                                            display:
+                                              hoveredTask === task.task_id &&
+                                              activeForm.task_id != task.task_id
+                                                ? "inline"
+                                                : "none"
                                           }}
+                                          onClick={e =>
+                                            deleteTask(task.task_id)
+                                          }
+                                        >
+                                          <BiTrash size="1.25rem" />
+                                        </Button>
+                                        <Button
+                                          variant="light"
                                           onClick={e =>
                                             setActiveForm({
                                               type: "edit_t",
@@ -320,12 +467,11 @@ function Board(props) {
                                             })
                                           }
                                           style={{
+                                            color: "teal",
+                                            width: "1.5rem",
+                                            height: "1.5rem",
+                                            padding: "0rem",
                                             float: "right",
-                                            height: "1rem",
-                                            background: "#00000000",
-                                            border: "#00000000",
-                                            marginTop: "-2rem",
-                                            color: "gray",
                                             display:
                                               hoveredTask === task.task_id &&
                                               activeForm.task_id != task.task_id
@@ -347,31 +493,39 @@ function Board(props) {
                                         >
                                           <Form
                                             ref={taskFormRef}
-                                            onSubmit={addNewTask}
+                                            onSubmit={updateTask}
                                           >
                                             <Form.Group>
                                               <Form.Control
-                                                placeholder="Title"
-                                                value={task.title}
+                                                placeholder={task.title}
+                                                isInvalid={
+                                                  newTaskTitle === null ||
+                                                  newTaskTitle.trim().length ===
+                                                    0
+                                                }
                                                 onChange={e =>
                                                   setNewTaskTitle(
                                                     e.target.value
                                                   )
                                                 }
                                               />
+                                              <Form.Control.Feedback type="invalid">
+                                                Task must have a title!
+                                              </Form.Control.Feedback>
                                             </Form.Group>
                                             <Form.Group>
                                               <Form.Control
-                                                as="textarea"
-                                                rows={3}
-                                                placeholder="Description"
-                                                value={task.description}
+                                                placeholder={task.description}
                                                 onChange={e =>
                                                   setNewTaskDesc(e.target.value)
                                                 }
                                               />
                                             </Form.Group>
                                             <Button
+                                              disabled={
+                                                newTaskTitle === null ||
+                                                newTaskTitle.trim().length === 0
+                                              }
                                               variant="light"
                                               type="submit"
                                             >
@@ -390,6 +544,7 @@ function Board(props) {
                                                   task_id: null
                                                 });
                                               }}
+                                              type="reset"
                                             >
                                               Discard
                                             </Button>
@@ -457,8 +612,6 @@ function Board(props) {
                               </Form.Group>
                               <Form.Group>
                                 <Form.Control
-                                  as="textarea"
-                                  rows={3}
                                   placeholder="Description"
                                   onChange={e => setNewTaskDesc(e.target.value)}
                                 />
@@ -479,6 +632,7 @@ function Board(props) {
                                     task_id: null
                                   });
                                 }}
+                                type="reset"
                               >
                                 Discard
                               </Button>
@@ -517,7 +671,7 @@ function Board(props) {
           className="new-task-form"
           style={{
             display: activeForm.type === "list" ? "block" : "none",
-            width: "20rem",
+            minWidth: "20rem",
             margin: "0.5rem"
           }}
         >
@@ -544,6 +698,7 @@ function Board(props) {
                   task_id: null
                 });
               }}
+              type="reset"
             >
               Discard
             </Button>
