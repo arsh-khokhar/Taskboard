@@ -1,6 +1,6 @@
 import {Fragment, React, useState, useEffect, useRef} from "react";
 import Axios from "axios";
-import {Link, Redirect} from "react-router-dom";
+import {Link, Redirect, useHistory} from "react-router-dom";
 import {CardDeck} from "react-bootstrap";
 import {Button} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
@@ -12,27 +12,22 @@ function Home() {
   const [user_boards, setUserBoards] = useState(null);
   const [activeForm, setActiveForm] = useState(false);
   const formRef = useRef(null);
+  const history = useHistory();
 
   const getBoards = async () => {
     try {
-      Axios.get("http://localhost:5000/api/boards/", {
+      const response = await Axios.get("http://localhost:5000/api/boards/", {
         headers: {
           "auth-user": sessionStorage.getItem("auth-user"),
           "auth-token": sessionStorage.getItem("auth-token")
         }
-      })
-        .then(response => {
-          setUserBoards(response.data);
-          if (response.status === 200) {
-            setAuthUser(true);
-          } else {
-            setAuthUser(false);
-          }
-        })
-        .catch(error => {
-          console.log(error);
-          setAuthUser(false);
-        });
+      });
+      setUserBoards(response.data);
+      if (response.status === 200) {
+        setAuthUser(true);
+      } else {
+        setAuthUser(false);
+      }
     } catch (error) {
       console.error(error);
       setAuthUser(false);
@@ -43,7 +38,7 @@ function Home() {
     e.preventDefault();
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/boards/",
         {title: newBoardName},
         {
@@ -52,16 +47,11 @@ function Home() {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm(false);
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      );
+      if (response.status === 200) {
+        setActiveForm(false);
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -81,7 +71,13 @@ function Home() {
     }
   }, [doReload]);
 
-  useEffect(() => {}, [auth_user, user_boards]);
+  useEffect(() => {
+    if (auth_user === false) {
+      history.push({
+        pathname: "/Login"
+      });
+    }
+  }, [auth_user, user_boards]);
 
   if (auth_user === true) {
     return (

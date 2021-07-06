@@ -16,25 +16,20 @@ function Login() {
     e.preventDefault();
     try {
       const loginData = {email, password};
-      Axios.post("http://localhost:5000/api/users/login", {
-        email: loginData.email,
-        password: loginData.password
-      })
-        .then(response => {
-          if (response.status === 200) {
-            sessionStorage.setItem("auth-token", response.data);
-            sessionStorage.setItem("auth-user", email);
-            setLoginSuccess(true);
-          } else {
-            setLoginSuccess(false);
-          }
-        })
-        .catch(error => {
-          if (error.response.status === 400) {
-            setLoginSuccess(false);
-            setErrorMessage(error.response.data);
-          }
-        });
+      const response = await Axios.post(
+        "http://localhost:5000/api/users/login",
+        {
+          email: loginData.email,
+          password: loginData.password
+        }
+      );
+      if (response.status === 200) {
+        sessionStorage.setItem("auth-token", response.data);
+        sessionStorage.setItem("auth-user", email);
+        setLoginSuccess(true);
+      } else {
+        setLoginSuccess(false);
+      }
     } catch (error) {
       console.error(error);
     }

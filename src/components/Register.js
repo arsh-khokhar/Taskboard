@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect, useState} from "react";
-import {Redirect} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import Alert from "react-bootstrap/Alert";
 import Axios from "axios";
 import Form from "react-bootstrap/Form";
@@ -10,39 +10,33 @@ function Register() {
   const [password, setPassword] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const history = useHistory();
 
   const onSubmitForm = async e => {
     e.preventDefault();
     try {
       const registerData = {email, password};
-      Axios.post("http://localhost:5000/api/users/register", {
-        email: registerData.email,
-        password: registerData.password
-      })
-        .then(response => {
-          console.log("Response received");
-          console.log(response.status);
-          console.log(response.data);
-          if (response.status === 200) {
-            setRegisterSuccess(true);
-          } else {
-            setRegisterSuccess(false);
-          }
-        })
-        .catch(error => {
-          if (error.response.status === 400) {
-            setRegisterSuccess(false);
-            setErrorMessage(error.response.data);
-          }
-        });
+      const response = await Axios.post(
+        "http://localhost:5000/api/users/register",
+        {
+          email: registerData.email,
+          password: registerData.password
+        }
+      );
+      setRegisterSuccess(response.status === 200);
     } catch (error) {
       console.error(error);
     }
   };
 
-  if (registerSuccess === true) {
-    return <Redirect to="/login" />;
-  }
+  useEffect(() => {
+    if (registerSuccess === true) {
+      history.push({
+        pathname: "/Login"
+      });
+    }
+  }, [registerSuccess]);
+
   return (
     <Fragment>
       <Alert

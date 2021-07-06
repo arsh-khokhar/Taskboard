@@ -1,4 +1,3 @@
-import "./index.css";
 import "./App.css";
 import Home from "./Home";
 import Board from "./Board";

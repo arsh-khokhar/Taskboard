@@ -1,6 +1,10 @@
 import {Fragment, React, useState, useEffect, useRef} from "react";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
 import {BiEdit, BiTrash} from "react-icons/bi";
+import {FaUserFriends, FaUserCircle} from "react-icons/fa";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import Image from "react-bootstrap/Image";
 import Axios from "axios";
 import "./App.css";
 import {Button} from "react-bootstrap";
@@ -14,6 +18,7 @@ function Board(props) {
   const boardId = props.location.state.board_id;
   const [columns, setColumns] = useState(null);
   const [board_title, setBoardTitle] = useState(null);
+  const [collabs, setCollabs] = useState(null);
   const [doReload, setReload] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [activeForm, setActiveForm] = useState({
@@ -35,19 +40,16 @@ function Board(props) {
   const syncTaskMove = async () => {
     try {
       const toSend = columns;
-      Axios.post("http://localhost:5000/api/tasks/reorder", toSend, {
-        headers: {
-          "auth-user": sessionStorage.getItem("auth-user"),
-          "auth-token": sessionStorage.getItem("auth-token")
-        }
-      })
-        .then(response => {
-          if (response.status === 200) {
+      const response = await Axios.post(
+        "http://localhost:5000/api/tasks/reorder",
+        toSend,
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
           }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+        }
+      );
     } catch (error) {
       console.error(error);
     }
@@ -94,20 +96,21 @@ function Board(props) {
 
   const getBoardContents = async () => {
     try {
-      Axios.get("http://localhost:5000/api/boards/" + boardId, {
-        headers: {
-          "auth-user": sessionStorage.getItem("auth-user"),
-          "auth-token": sessionStorage.getItem("auth-token")
+      const response = await Axios.get(
+        "http://localhost:5000/api/boards/" + boardId,
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
         }
-      })
-        .then(response => {
-          setBoardTitle(response.data.title);
-          setColumns(response.data.lists);
-          setLoaded(true);
-        })
-        .catch(error => {
-          console.log(error.response.data);
-        });
+      );
+      if (response.status === 200) {
+        setBoardTitle(response.data.title);
+        setColumns(response.data.lists);
+        setCollabs(response.data.collaborators);
+        setLoaded(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -119,7 +122,7 @@ function Board(props) {
     setReload(false);
     const tasks = columns[activeForm.list_id].tasks;
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/tasks/",
         {
           title: newTaskTitle,
@@ -133,20 +136,15 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm({
-              type: null,
-              list_id: null,
-              task_id: null
-            });
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
         });
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -157,7 +155,7 @@ function Board(props) {
     e.target.reset();
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/tasks/update",
         {
           task_id: activeForm.task_id,
@@ -170,20 +168,15 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm({
-              type: null,
-              list_id: null,
-              task_id: null
-            });
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
         });
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -192,7 +185,7 @@ function Board(props) {
   const deleteTask = async toDelete => {
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/tasks/delete/",
         {
           task_id: toDelete
@@ -203,15 +196,10 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      );
+      if (response.status === 200) {
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -222,7 +210,7 @@ function Board(props) {
     e.target.reset();
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/lists/",
         {board_id: boardId, title: newListTitle},
         {
@@ -231,33 +219,26 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm({
-              type: null,
-              list_id: null,
-              task_id: null
-            });
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
         });
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
   };
 
   const updateList = async e => {
-    console.log("attempting to update list");
-    console.log(newListTitle);
     e.preventDefault();
     e.target.reset();
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/lists/update",
         {
           list_id: activeForm.list_id,
@@ -269,20 +250,15 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm({
-              type: null,
-              list_id: null,
-              task_id: null
-            });
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
         });
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -291,7 +267,7 @@ function Board(props) {
   const deleteList = async toDelete => {
     setReload(false);
     try {
-      Axios.post(
+      const response = await Axios.post(
         "http://localhost:5000/api/lists/delete/",
         {
           list_id: toDelete
@@ -302,15 +278,10 @@ function Board(props) {
             "auth-token": sessionStorage.getItem("auth-token")
           }
         }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      );
+      if (response.status === 200) {
+        setReload(true);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -347,15 +318,68 @@ function Board(props) {
 
   return loaded ? (
     <Fragment>
-      <h1
-        style={{
-          margin: "1rem",
-          marginLeft: "2rem",
-          color: "white"
-        }}
-      >
-        {board_title}
-      </h1>
+      <div style={{color: "white"}}>
+        <h1
+          style={{
+            margin: "1rem",
+            marginLeft: "2rem",
+            marginRight: "5rem",
+            color: "white",
+            display: "inline"
+          }}
+        >
+          {board_title}
+        </h1>
+        <OverlayTrigger
+          placement="right"
+          delay={{show: 0, hide: 0}}
+          overlay={props => (
+            <Tooltip id="button-tooltip" {...props}>
+              {sessionStorage.getItem("auth-user")} (You)
+            </Tooltip>
+          )}
+        >
+          <Button
+            style={{
+              marginTop: "-1rem",
+              padding: "0rem",
+              width: "2rem",
+              height: "2rem",
+              background: "transparent",
+              borderColor: "transparent"
+            }}
+          >
+            <FaUserCircle size="2rem" />
+          </Button>
+        </OverlayTrigger>
+        {collabs.map((collab, index) => {
+          return (
+            <OverlayTrigger
+              placement="right"
+              delay={{show: 250, hide: 400}}
+              overlay={props => (
+                <Tooltip id="button-tooltip" {...props}>
+                  {collab.email}
+                </Tooltip>
+              )}
+            >
+              <Button
+                style={{
+                  marginTop: "-1rem",
+                  padding: "0rem",
+                  width: "2rem",
+                  height: "2rem",
+                  background: "transparent",
+                  borderColor: "transparent"
+                }}
+              >
+                <FaUserCircle size="2rem" />
+              </Button>
+            </OverlayTrigger>
+          );
+        })}
+      </div>
+
       <div className="scrolling">
         <DragDropContext
           onDragEnd={result => onDragEnd(result, columns, setColumns)}
