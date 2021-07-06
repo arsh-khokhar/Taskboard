@@ -8,6 +8,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import {Card} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
+import Modal from "react-bootstrap/Modal";
 
 function Board(props) {
   const boardId = props.location.state.board_id;
@@ -26,6 +27,10 @@ function Board(props) {
   const listFormRef = useRef(null);
   const taskFormRef = useRef(null);
   const [hoveredTask, setHoveredTask] = useState(null);
+  const [modalShow, setModalShow] = useState(false);
+
+  const handleModalClose = () => setModalShow(false);
+  const handleModalShow = () => setModalShow(true);
 
   const syncTaskMove = async () => {
     try {
@@ -108,66 +113,6 @@ function Board(props) {
     }
   };
 
-  const addNewList = async e => {
-    e.preventDefault();
-    setReload(false);
-    try {
-      Axios.post(
-        "http://localhost:5000/api/lists/",
-        {board_id: boardId, title: newListTitle},
-        {
-          headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
-          }
-        }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setActiveForm({
-              type: null,
-              list_id: null,
-              task_id: null
-            });
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const deleteTask = async toDelete => {
-    setReload(false);
-    try {
-      Axios.post(
-        "http://localhost:5000/api/tasks/delete/",
-        {
-          task_id: toDelete
-        },
-        {
-          headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
-          }
-        }
-      )
-        .then(response => {
-          if (response.status === 200) {
-            setReload(true);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const addNewTask = async e => {
     e.preventDefault();
     e.target.reset();
@@ -244,41 +189,131 @@ function Board(props) {
     }
   };
 
+  const deleteTask = async toDelete => {
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/tasks/delete/",
+        {
+          task_id: toDelete
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const addNewList = async e => {
+    e.preventDefault();
+    e.target.reset();
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/lists/",
+        {board_id: boardId, title: newListTitle},
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setActiveForm({
+              type: null,
+              list_id: null,
+              task_id: null
+            });
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const updateList = async e => {
     console.log("attempting to update list");
+    console.log(newListTitle);
     e.preventDefault();
-    // e.target.reset();
-    // setReload(false);
-    // try {
-    //   Axios.post(
-    //     "http://localhost:5000/api/tasks/update",
-    //     {
-    //       list_id: activeForm.list_id,
-    //       title: newListTitle,
-    //     },
-    //     {
-    //       headers: {
-    //         "auth-user": sessionStorage.getItem("auth-user"),
-    //         "auth-token": sessionStorage.getItem("auth-token")
-    //       }
-    //     }
-    //   )
-    //     .then(response => {
-    //       if (response.status === 200) {
-    //         setActiveForm({
-    //           type: null,
-    //           list_id: null,
-    //           task_id: null
-    //         });
-    //         setReload(true);
-    //       }
-    //     })
-    //     .catch(error => {
-    //       console.error(error);
-    //     });
-    // } catch (error) {
-    //   console.error(error);
-    // }
+    e.target.reset();
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/lists/update",
+        {
+          list_id: activeForm.list_id,
+          title: newListTitle
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setActiveForm({
+              type: null,
+              list_id: null,
+              task_id: null
+            });
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const deleteList = async toDelete => {
+    setReload(false);
+    try {
+      Axios.post(
+        "http://localhost:5000/api/lists/delete/",
+        {
+          list_id: toDelete
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      )
+        .then(response => {
+          if (response.status === 200) {
+            setReload(true);
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -352,18 +387,22 @@ function Board(props) {
                           <large
                             style={{marginBottom: "1rem", display: "block"}}
                           >
-                            <h4 style={{color: "white", display: "inline"}}>
+                            <h4
+                              style={{
+                                color: "white",
+                                margin: "0.5rem",
+                                display:
+                                  activeForm.type === "edit_l" &&
+                                  activeForm.list_id === columnId
+                                    ? "none"
+                                    : "inline"
+                              }}
+                            >
                               {column.title}
                             </h4>
                             <Button
                               variant="outline-light"
-                              onClick={e =>
-                                setActiveForm({
-                                  type: "edit_l",
-                                  list_id: columnId,
-                                  task_id: null
-                                })
-                              }
+                              onClick={handleModalShow}
                               style={{
                                 borderColor: "transparent",
                                 color: "gray",
@@ -371,11 +410,47 @@ function Board(props) {
                                 height: "1.5rem",
                                 padding: "0rem",
                                 float: "right",
-                                marginBottom: "1rem"
+                                marginBottom: "1rem",
+                                display:
+                                  activeForm.type === "edit_l" &&
+                                  activeForm.list_id === columnId
+                                    ? "none"
+                                    : "block"
                               }}
                             >
                               <BiTrash size="1.25rem" />
                             </Button>
+                            <Modal
+                              show={modalShow}
+                              onHide={handleModalClose}
+                              backdrop="static"
+                              keyboard={false}
+                            >
+                              <Modal.Header>
+                                <Modal.Title>Delete List?</Modal.Title>
+                              </Modal.Header>
+                              <Modal.Body>
+                                Deleting list would also delete all of the
+                                associated tasks. Are you sure?
+                              </Modal.Body>
+                              <Modal.Footer>
+                                <Button
+                                  variant="secondary"
+                                  onClick={handleModalClose}
+                                >
+                                  Go back
+                                </Button>
+                                <Button
+                                  variant="danger"
+                                  onClick={e => {
+                                    deleteList(columnId);
+                                    handleModalClose();
+                                  }}
+                                >
+                                  Delete List
+                                </Button>
+                              </Modal.Footer>
+                            </Modal>
                             <Button
                               variant="outline-light"
                               onClick={e =>
@@ -392,11 +467,62 @@ function Board(props) {
                                 height: "1.5rem",
                                 padding: "0rem",
                                 float: "right",
-                                marginBottom: "1rem"
+                                marginBottom: "1rem",
+                                display:
+                                  activeForm.type === "edit_l" &&
+                                  activeForm.list_id === columnId
+                                    ? "none"
+                                    : "block"
                               }}
                             >
                               <BiEdit size="1.25rem" />
                             </Button>
+                            <div
+                              className="edit-list-form"
+                              style={{
+                                display:
+                                  activeForm.type === "edit_l" &&
+                                  activeForm.list_id === columnId
+                                    ? "block"
+                                    : "none"
+                              }}
+                            >
+                              <Form ref={listFormRef} onSubmit={updateList}>
+                                <Form.Group>
+                                  <Form.Control
+                                    style={{
+                                      fontSize: "large",
+                                      background: "transparent",
+                                      color: "white"
+                                    }}
+                                    placeholder={column.title}
+                                    onChange={e =>
+                                      setNewListTitle(e.target.value)
+                                    }
+                                  />
+                                </Form.Group>
+                                <Button variant="outline-info" type="submit">
+                                  Update
+                                </Button>
+                                <Button
+                                  variant="outline-light"
+                                  style={{
+                                    marginLeft: "0.5rem"
+                                  }}
+                                  onClick={e => {
+                                    clearFormData();
+                                    setActiveForm({
+                                      type: null,
+                                      list_id: null,
+                                      task_id: null
+                                    });
+                                  }}
+                                  type="reset"
+                                >
+                                  Discard
+                                </Button>
+                              </Form>
+                            </div>
                           </large>
                           {column.tasks.map((task, index) => {
                             return (
@@ -508,6 +634,7 @@ function Board(props) {
                                                     e.target.value
                                                   )
                                                 }
+                                                style={{color: "black"}}
                                               />
                                               <Form.Control.Feedback type="invalid">
                                                 Task must have a title!
@@ -519,6 +646,7 @@ function Board(props) {
                                                 onChange={e =>
                                                   setNewTaskDesc(e.target.value)
                                                 }
+                                                style={{color: "black"}}
                                               />
                                             </Form.Group>
                                             <Button
@@ -526,13 +654,13 @@ function Board(props) {
                                                 newTaskTitle === null ||
                                                 newTaskTitle.trim().length === 0
                                               }
-                                              variant="light"
+                                              variant="info"
                                               type="submit"
                                             >
                                               Update Task
                                             </Button>
                                             <Button
-                                              variant="dark"
+                                              variant="outline-dark"
                                               style={{
                                                 marginLeft: "0.5rem"
                                               }}
