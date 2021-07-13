@@ -111,7 +111,7 @@ function Home() {
   useEffect(() => {
     if (auth_user === false) {
       history.push({
-        pathname: "/Login"
+        pathname: "/login"
       });
     }
   }, [auth_user, user_boards]);
@@ -119,14 +119,16 @@ function Home() {
   if (auth_user === true) {
     return (
       <Fragment>
+        <h4 class="text-center" style={{color: "white"}}>
+          Welcome, {sessionStorage.getItem("auth-user")}!
+        </h4>
         <CardDeck style={{margin: "1rem"}}>
           {user_boards.map((item, index) => {
             return (
               <div>
                 <Link
                   to={{
-                    pathname: "/board",
-                    state: {board_id: item.board_id}
+                    pathname: "/board/" + item.board_id
                   }}
                   key={index}
                   style={{textDecoration: "none"}}

@@ -21,7 +21,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 
 function Board(props) {
-  const boardId = props.location.state.board_id;
+  const boardId = props.match.params.board_id;
   const [columns, setColumns] = useState(null);
   const [board_title, setBoardTitle] = useState(null);
   const [collabs, setCollabs] = useState(null);
