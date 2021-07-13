@@ -2,6 +2,7 @@ import {Fragment, React, useState, useEffect, useRef} from "react";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
 import {BiEdit, BiTrash} from "react-icons/bi";
 import {FaUserFriends, FaUserCircle} from "react-icons/fa";
+import {HiChevronDoubleUp, HiOutlineX} from "react-icons/hi";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Image from "react-bootstrap/Image";
@@ -13,6 +14,11 @@ import {Card} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+import "react-bootstrap-typeahead/css/Typeahead.css";
+import {Typeahead} from "react-bootstrap-typeahead";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 
 function Board(props) {
   const boardId = props.location.state.board_id;
@@ -26,16 +32,322 @@ function Board(props) {
     list_id: null,
     task_id: null
   });
+
+  const priorityColors = {
+    critical: "orangered",
+    high: "darkorange",
+    moderate: "dodgerblue",
+    low: "limegreen"
+  };
+  const [newBoardTitle, setNewBoardTitle] = useState(null);
   const [newListTitle, setNewListTitle] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState(null);
   const [newTaskDesc, setNewTaskDesc] = useState(null);
+  const [user, setUser] = useState(sessionStorage.getItem("auth-user"));
   const listFormRef = useRef(null);
   const taskFormRef = useRef(null);
+  const collabTypeAheadRef = useRef();
   const [hoveredTask, setHoveredTask] = useState(null);
   const [modalShow, setModalShow] = useState(false);
-
+  const [taskModalShow, setTaskModalShow] = useState(false);
+  const [boardOwner, setBoardOwner] = useState(null);
+  const [activeEditTask, setActiveEditTask] = useState(null);
+  const [allUsers, setAllUsers] = useState(null);
+  const [newCollab, setNewCollab] = useState(null);
   const handleModalClose = () => setModalShow(false);
   const handleModalShow = () => setModalShow(true);
+  const handleTaskModalClose = () => setTaskModalShow(false);
+  const handleTaskModalShow = () => setTaskModalShow(true);
+
+  const CollabAvatar = params => {
+    return (
+      <OverlayTrigger
+        placement="right"
+        delay={{show: 0, hide: 0}}
+        overlay={props => (
+          <Tooltip id="button-tooltip" {...props}>
+            {params.user + (params.isActiveUser ? " (You)" : "")}
+          </Tooltip>
+        )}
+      >
+        <div style={{display: "inline-block"}}>
+          <Button
+            disabled
+            style={{
+              display: "inline",
+              marginTop: "-4rem",
+              marginRight: "0.25rem",
+              padding: "0rem",
+              width: "2.5rem",
+              height: "2.5rem",
+              background: "transparent",
+              borderColor: "transparent"
+            }}
+          >
+            <div>
+              <Image
+                style={{
+                  background: "black",
+                  width: "2.5rem",
+                  height: "2.5rem",
+                  padding: "0.25rem",
+                  radius: "2.5rem"
+                }}
+                className="border"
+                src={`https://avatars.dicebear.com/api/identicon/${params.seed}.svg`}
+                roundedCircle
+              />
+              <HiChevronDoubleUp
+                size="1.5rem"
+                style={{
+                  margin: "0 0 -1rem -1.25rem",
+                  color: "white",
+                  visibility: params.isOwner ? "visible" : "hidden"
+                }}
+              />
+            </div>
+          </Button>
+          <Button
+            variant="light"
+            style={{
+              marginTop: "-2.5rem",
+              marginLeft: "2rem",
+              display: "flex",
+              padding: "0rem",
+              width: "1rem",
+              height: "1rem",
+              borderRadius: "1rem",
+              opacity: "99%",
+              visibility: params.isOwner
+                ? "hidden"
+                : boardOwner === user
+                ? "visible"
+                : "hidden"
+            }}
+            onClick={e => removeCollab(params.user)}
+          >
+            <HiOutlineX
+              size="1rem"
+              style={{
+                color: "gray"
+              }}
+            />
+          </Button>
+        </div>
+      </OverlayTrigger>
+    );
+  };
+
+  const AssigneeAvatar = params => {
+    return (
+      <OverlayTrigger
+        placement="right"
+        delay={{show: 0, hide: 0}}
+        overlay={props => (
+          <Tooltip id="button-tooltip" {...props}>
+            {params.user + (params.isActiveUser ? " (You)" : "")}
+          </Tooltip>
+        )}
+      >
+        <div style={{display: "inline-block"}}>
+          <Button
+            disabled
+            style={{
+              display: "inline",
+              marginTop: "-1rem",
+              marginRight: "0.25rem",
+              padding: "0rem",
+              width: params.size,
+              height: params.size,
+              background: "transparent",
+              borderColor: "transparent"
+            }}
+          >
+            <div>
+              <Image
+                style={{
+                  background: "black",
+                  width: params.size,
+                  height: params.size,
+                  padding: "0.25rem",
+                  radius: "2.5rem"
+                }}
+                className="border"
+                src={`https://avatars.dicebear.com/api/identicon/${params.seed}.svg`}
+                roundedCircle
+              />
+            </div>
+          </Button>
+        </div>
+      </OverlayTrigger>
+    );
+  };
+
+  const EditTaskForm = params => {
+    const [editTitle, setEditTitle] = useState(params.task.title);
+    const [editDesc, setEditDesc] = useState(params.task.description);
+    const [editPriority, setEditPriority] = useState(null);
+    const [newAssignees, setNewAssignees] = useState([]);
+    const [existingAssignees, setExistingAssignees] = useState(
+      params.task.assignees
+    );
+    const [removedAssignees, setRemovedAssignees] = useState([]);
+    const ref = useRef();
+    const options = [boardOwner].concat(collabs.map(collab => collab.email));
+    const assignees = existingAssignees.map(assignee => assignee.user_id);
+    useEffect(() => {}, [newAssignees]);
+    useEffect(() => {}, [existingAssignees]);
+
+    const difference = options.filter(x => !assignees.includes(x));
+
+    return (
+      <Form
+        onSubmit={e => {
+          updateTaskTwo(
+            e,
+            editTitle,
+            editDesc,
+            newAssignees,
+            removedAssignees,
+            editPriority
+          );
+        }}
+      >
+        <Form.Group>
+          <Form.Label> New Title </Form.Label>
+          <Form.Control
+            defaultValue={params.task.title}
+            placeholder="Title"
+            onChange={e => setEditTitle(e.target.value)}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>New Description</Form.Label>
+          <Form.Control
+            defaultValue={params.task.description}
+            placeholder="Description"
+            onChange={e => setEditDesc(e.target.value)}
+          />
+        </Form.Group>
+        <Form.Group style={{marginTop: "2rem"}}>
+          <div
+            style={{marginTop: "0rem", marginBottom: "1rem", display: "flex"}}
+          >
+            <Form.Label
+              style={{
+                marginTop: "-0.5rem",
+                marginRight: "0.5rem",
+                display: "inline"
+              }}
+            >
+              Assignees:
+            </Form.Label>
+            {existingAssignees.map((assignee, index, array) => {
+              return (
+                <div>
+                  <AssigneeAvatar
+                    user={assignee.user_id}
+                    seed={assignee.user_id}
+                    size={"2.5rem"}
+                  />
+                  <Button
+                    variant="light"
+                    style={{
+                      marginTop: "-2.5rem",
+                      marginLeft: "2rem",
+                      display: "flex",
+                      padding: "0rem",
+                      width: "1rem",
+                      height: "1rem",
+                      borderRadius: "1rem",
+                      opacity: "99%"
+                    }}
+                    onClick={e => {
+                      array = array.filter(
+                        elem => elem.user_id != assignee.user_id
+                      );
+                      setRemovedAssignees(
+                        removedAssignees.concat([assignee.user_id])
+                      );
+                      setExistingAssignees(array);
+                    }}
+                  >
+                    <HiOutlineX
+                      size="1rem"
+                      style={{
+                        color: "gray",
+                        opacity: "99%"
+                      }}
+                    />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+          <Typeahead
+            className="typeahead"
+            align="left"
+            id="typeahead"
+            multiple
+            options={difference}
+            placeholder="Add an assignee"
+            ref={ref}
+            selected={newAssignees}
+            onChange={setNewAssignees}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label> Priority: </Form.Label>
+          <Form.Control
+            as="select"
+            onChange={e => setEditPriority(e.target.value)}
+          >
+            <option>None</option>
+            <option>Low</option>
+            <option>Moderate</option>
+            <option>High</option>
+            <option>Critical</option>
+          </Form.Control>
+        </Form.Group>
+        <Button variant="info" style={{marginRight: "0.5rem"}} type="submit">
+          Update Task
+        </Button>
+        <Button
+          variant="secondary"
+          type="reset"
+          onClick={e => {
+            clearFormData();
+            setActiveForm({
+              type: null,
+              list_id: null,
+              task_id: null
+            });
+            handleTaskModalClose();
+          }}
+        >
+          Go back
+        </Button>
+      </Form>
+    );
+  };
+
+  const TaskEditModal = params => {
+    return (
+      <Fragment>
+        <Modal
+          show={taskModalShow && params.task.task_id === activeEditTask}
+          onHide={handleTaskModalClose}
+        >
+          <Modal.Header>
+            <Modal.Title>Edit Task</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <EditTaskForm task={params.task} />
+          </Modal.Body>
+        </Modal>
+      </Fragment>
+    );
+  };
 
   const syncTaskMove = async () => {
     try {
@@ -109,7 +421,100 @@ function Board(props) {
         setBoardTitle(response.data.title);
         setColumns(response.data.lists);
         setCollabs(response.data.collaborators);
+        setAllUsers(response.data.all_users);
+        setBoardOwner(response.data.owner_id);
         setLoaded(true);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const addCollaborator = async e => {
+    e.preventDefault();
+    e.target.reset();
+    setReload(false);
+    if (newCollab === null || newCollab === "None") {
+      setActiveForm({
+        type: null,
+        list_id: null,
+        task_id: null
+      });
+      return;
+    }
+    try {
+      const response = await Axios.post(
+        `http://localhost:5000/api/boards/${boardId}/add_collab/`,
+        {
+          user_id: newCollab
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
+        });
+        setReload(true);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const removeCollab = async toRemove => {
+    setReload(false);
+    try {
+      const response = await Axios.post(
+        `http://localhost:5000/api/boards/${boardId}/remove_collab/`,
+        {
+          user_id: toRemove
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      );
+      if (response.status === 200) {
+        setReload(true);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateBoard = async e => {
+    e.preventDefault();
+    e.target.reset();
+    setReload(false);
+    try {
+      const response = await Axios.post(
+        `http://localhost:5000/api/boards/${boardId}/update/`,
+        {
+          board_title: newBoardTitle
+        },
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      );
+      if (response.status === 200) {
+        setActiveForm({
+          type: null,
+          list_id: null,
+          task_id: null
+        });
+        setReload(true);
       }
     } catch (error) {
       console.error(error);
@@ -150,18 +555,30 @@ function Board(props) {
     }
   };
 
-  const updateTask = async e => {
-    e.preventDefault();
+  const updateTaskTwo = async (
+    e,
+    title,
+    desc,
+    new_assignees,
+    removed_assignees,
+    new_priority
+  ) => {
     e.target.reset();
+    var toSend = {
+      task_id: activeEditTask,
+      title: title,
+      description: desc,
+      assignees: new_assignees,
+      removed_assignees: removed_assignees,
+      board_id: boardId
+    };
+    toSend["priority"] = new_priority === "None" ? null : new_priority;
+    e.preventDefault();
     setReload(false);
     try {
       const response = await Axios.post(
         "http://localhost:5000/api/tasks/update",
-        {
-          task_id: activeForm.task_id,
-          title: newTaskTitle,
-          description: newTaskDesc
-        },
+        toSend,
         {
           headers: {
             "auth-user": sessionStorage.getItem("auth-user"),
@@ -180,6 +597,7 @@ function Board(props) {
     } catch (error) {
       console.error(error);
     }
+    setTaskModalShow(false);
   };
 
   const deleteTask = async toDelete => {
@@ -323,63 +741,179 @@ function Board(props) {
           style={{
             margin: "1rem",
             marginLeft: "2rem",
-            marginRight: "5rem",
+            marginRight: "0rem",
             color: "white",
-            display: "inline"
+            display: activeForm.type === "edit_b" ? "none" : "inline"
           }}
         >
           {board_title}
         </h1>
-        <OverlayTrigger
-          placement="right"
-          delay={{show: 0, hide: 0}}
-          overlay={props => (
-            <Tooltip id="button-tooltip" {...props}>
-              {sessionStorage.getItem("auth-user")} (You)
-            </Tooltip>
-          )}
+        <Button
+          variant="outline-light"
+          onClick={e =>
+            setActiveForm({
+              type: "edit_b",
+              list_id: null,
+              task_id: null
+            })
+          }
+          style={{
+            borderColor: "transparent",
+            color: "lightgray",
+            width: "2rem",
+            height: "2rem",
+            padding: "0rem",
+            marginTop: "-1.5rem",
+            marginRight: "5rem",
+            display: activeForm.type === "edit_b" ? "none" : "inline"
+          }}
         >
+          <BiEdit size="1.5rem" />
+        </Button>
+        <div
+          style={{
+            display: activeForm.type === "edit_b" ? "inline-block" : "none",
+            background: "#222222aa",
+            padding: "0.5rem",
+            marginLeft: "1rem",
+            borderRadius: "0.5rem"
+          }}
+        >
+          <Form ref={listFormRef} onSubmit={updateBoard} inline>
+            <Form.Group>
+              <Form.Control
+                style={{
+                  background: "transparent",
+                  color: "white"
+                }}
+                placeholder={board_title}
+                onChange={e => setNewBoardTitle(e.target.value)}
+              />
+            </Form.Group>
+
+            <Button variant="outline-info" type="submit">
+              Update
+            </Button>
+            <Button
+              variant="outline-light"
+              style={{
+                marginLeft: "0.5rem"
+              }}
+              onClick={e => {
+                clearFormData();
+                setActiveForm({
+                  type: null,
+                  list_id: null,
+                  task_id: null
+                });
+              }}
+              type="reset"
+            >
+              Discard
+            </Button>
+          </Form>
+        </div>
+        <div className="collabs">
+          <CollabAvatar
+            user={boardOwner}
+            isOwner={true}
+            isActiveUser={boardOwner === user}
+            seed={boardOwner}
+          />
+          {collabs.map((collab, index) => {
+            return (
+              <CollabAvatar
+                user={collab.email}
+                isOwner={false}
+                isActiveUser={collab.email === user}
+                seed={collab.email}
+              />
+            );
+          })}
+
           <Button
+            variant="outline-secondary"
             style={{
-              marginTop: "-1rem",
-              padding: "0rem",
-              width: "2rem",
-              height: "2rem",
-              background: "transparent",
-              borderColor: "transparent"
+              background: "#222222aa",
+              width: "2.5rem",
+              height: "2.5rem",
+              borderRadius: "2.5rem",
+              marginTop: "-1.5rem",
+              display: activeForm.type === "collab" ? "none" : "inline-block"
+            }}
+            onClick={e => {
+              clearFormData();
+              setActiveForm({
+                type: "collab",
+                list_id: null,
+                task_id: null
+              });
             }}
           >
-            <FaUserCircle size="2rem" />
+            +
           </Button>
-        </OverlayTrigger>
-        {collabs.map((collab, index) => {
-          return (
-            <OverlayTrigger
-              placement="right"
-              delay={{show: 250, hide: 400}}
-              overlay={props => (
-                <Tooltip id="button-tooltip" {...props}>
-                  {collab.email}
-                </Tooltip>
-              )}
-            >
-              <Button
-                style={{
-                  marginTop: "-1rem",
-                  padding: "0rem",
-                  width: "2rem",
-                  height: "2rem",
-                  background: "transparent",
-                  borderColor: "transparent"
-                }}
-              >
-                <FaUserCircle size="2rem" />
-              </Button>
-            </OverlayTrigger>
-          );
-        })}
-      </div>
+          <div
+            style={{
+              display: activeForm.type === "collab" ? "inline-block" : "none",
+              background: "#222222aa",
+              padding: "0.5rem",
+              marginTop: "-1.5rem",
+              marginLeft: "1rem",
+              float: "right",
+              borderRadius: "0.5rem"
+            }}
+          >
+            <Form onSubmit={addCollaborator} inline>
+              <Form.Group>
+                <Form.Control
+                  as="select"
+                  style={{
+                    background: "lightgray",
+                    color: "black",
+                    marginRight: "0.5rem"
+                  }}
+                  onChange={e => setNewCollab(e.target.value)}
+                >
+                  <option> None </option>
+                  {allUsers.map((user, index) => {
+                    return (
+                      <option
+                        disabled={
+                          collabs.some(e => e.email === user.email) ||
+                          user.email === boardOwner
+                        }
+                      >
+                        {user.email}
+                      </option>
+                    );
+                  })}
+                </Form.Control>
+              </Form.Group>
 
+              <Button variant="outline-info" type="submit">
+                Add Collaborator
+              </Button>
+              <Button
+                variant="outline-light"
+                style={{
+                  marginLeft: "0.5rem"
+                }}
+                onClick={e => {
+                  clearFormData();
+                  setActiveForm({
+                    type: null,
+                    list_id: null,
+                    task_id: null
+                  });
+                }}
+                type="reset"
+              >
+                Discard
+              </Button>
+            </Form>
+          </div>
+        </div>
+      </div>
       <div className="scrolling">
         <DragDropContext
           onDragEnd={result => onDragEnd(result, columns, setColumns)}
@@ -575,6 +1109,22 @@ function Board(props) {
                                       }
                                       onMouseLeave={() => setHoveredTask(null)}
                                     >
+                                      <div
+                                        style={{
+                                          marginBottom: "0.2rem",
+                                          opacity: "75%",
+                                          display:
+                                            task.priority === null
+                                              ? "none"
+                                              : "block",
+                                          background: "transparent",
+                                          width: "5rem",
+                                          height: "0.5rem",
+                                          borderRadius: "0.5rem",
+                                          background:
+                                            priorityColors[task.priority]
+                                        }}
+                                      />
                                       <large>
                                         <h6
                                           style={{
@@ -609,13 +1159,10 @@ function Board(props) {
                                         </Button>
                                         <Button
                                           variant="light"
-                                          onClick={e =>
-                                            setActiveForm({
-                                              type: "edit_t",
-                                              list_id: columnId,
-                                              task_id: task.task_id
-                                            })
-                                          }
+                                          onClick={e => {
+                                            setActiveEditTask(task.task_id);
+                                            handleTaskModalShow();
+                                          }}
                                           style={{
                                             color: "teal",
                                             width: "1.5rem",
@@ -631,77 +1178,7 @@ function Board(props) {
                                         >
                                           <BiEdit size="1.25rem" />
                                         </Button>
-                                        <div
-                                          className="new-task-form"
-                                          style={{
-                                            display:
-                                              activeForm.task_id ===
-                                              task.task_id
-                                                ? "block"
-                                                : "none"
-                                          }}
-                                        >
-                                          <Form
-                                            ref={taskFormRef}
-                                            onSubmit={updateTask}
-                                          >
-                                            <Form.Group>
-                                              <Form.Control
-                                                placeholder={task.title}
-                                                isInvalid={
-                                                  newTaskTitle === null ||
-                                                  newTaskTitle.trim().length ===
-                                                    0
-                                                }
-                                                onChange={e =>
-                                                  setNewTaskTitle(
-                                                    e.target.value
-                                                  )
-                                                }
-                                                style={{color: "black"}}
-                                              />
-                                              <Form.Control.Feedback type="invalid">
-                                                Task must have a title!
-                                              </Form.Control.Feedback>
-                                            </Form.Group>
-                                            <Form.Group>
-                                              <Form.Control
-                                                placeholder={task.description}
-                                                onChange={e =>
-                                                  setNewTaskDesc(e.target.value)
-                                                }
-                                                style={{color: "black"}}
-                                              />
-                                            </Form.Group>
-                                            <Button
-                                              disabled={
-                                                newTaskTitle === null ||
-                                                newTaskTitle.trim().length === 0
-                                              }
-                                              variant="info"
-                                              type="submit"
-                                            >
-                                              Update Task
-                                            </Button>
-                                            <Button
-                                              variant="outline-dark"
-                                              style={{
-                                                marginLeft: "0.5rem"
-                                              }}
-                                              onClick={e => {
-                                                clearFormData();
-                                                setActiveForm({
-                                                  type: null,
-                                                  list_id: null,
-                                                  task_id: null
-                                                });
-                                              }}
-                                              type="reset"
-                                            >
-                                              Discard
-                                            </Button>
-                                          </Form>
-                                        </div>
+                                        <TaskEditModal task={task} />
                                       </large>
                                       <small
                                         className="text-muted"
@@ -709,11 +1186,24 @@ function Board(props) {
                                           display:
                                             activeForm.task_id === task.task_id
                                               ? "none"
-                                              : "block"
+                                              : "flex"
                                         }}
                                       >
                                         {task.description}
                                       </small>
+                                      <div className="assignees">
+                                        {task.assignees.map(
+                                          (assignee, index) => {
+                                            return (
+                                              <AssigneeAvatar
+                                                user={assignee.user_id}
+                                                seed={assignee.user_id}
+                                                size={"1.75rem"}
+                                              />
+                                            );
+                                          }
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 }}

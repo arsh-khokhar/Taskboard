@@ -4,6 +4,8 @@ import {Link, Redirect, useHistory} from "react-router-dom";
 import {CardDeck} from "react-bootstrap";
 import {Button} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
+import {BiTrash} from "react-icons/bi";
+import Modal from "react-bootstrap/Modal";
 
 function Home() {
   const [newBoardName, setNewBoardName] = useState(null);
@@ -11,6 +13,19 @@ function Home() {
   const [auth_user, setAuthUser] = useState(null);
   const [user_boards, setUserBoards] = useState(null);
   const [activeForm, setActiveForm] = useState(false);
+  const [modalShow, setModalShow] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+
+  const handleModalClose = () => {
+    setModalShow(false);
+    setBoardToDelete(null);
+  };
+
+  const handleModalShow = board_id => {
+    setModalShow(true);
+    setBoardToDelete(board_id);
+  };
+
   const formRef = useRef(null);
   const history = useHistory();
 
@@ -31,6 +46,28 @@ function Home() {
     } catch (error) {
       console.error(error);
       setAuthUser(false);
+    }
+  };
+
+  const deleteBoard = async toDelete => {
+    if (!toDelete) return;
+    setReload(false);
+    try {
+      const response = await Axios.post(
+        "http://localhost:5000/api/boards/delete/" + toDelete,
+        {},
+        {
+          headers: {
+            "auth-user": sessionStorage.getItem("auth-user"),
+            "auth-token": sessionStorage.getItem("auth-token")
+          }
+        }
+      );
+      if (response.status === 200) {
+        setReload(true);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -85,25 +122,69 @@ function Home() {
         <CardDeck style={{margin: "1rem"}}>
           {user_boards.map((item, index) => {
             return (
-              <Link
-                to={{
-                  pathname: "/board",
-                  state: {board_id: item.board_id}
-                }}
-                key={index}
-                style={{textDecoration: "none"}}
-              >
+              <div>
+                <Link
+                  to={{
+                    pathname: "/board",
+                    state: {board_id: item.board_id}
+                  }}
+                  key={index}
+                  style={{textDecoration: "none"}}
+                >
+                  <Button
+                    variant="light"
+                    className={{
+                      "text-center": true,
+                      "board-card": true
+                    }}
+                  >
+                    <h4>{item.title}</h4>
+                    <small className="text-muted">Owner: {item.owner_id}</small>
+                  </Button>
+                </Link>
                 <Button
                   variant="light"
+                  onClick={e => handleModalShow(item.board_id)}
                   className={{
                     "text-center": true,
-                    "board-card": true
+                    "board-delete-button": true
+                  }}
+                  style={{
+                    borderColor: "transparent",
+                    color: "tomato"
                   }}
                 >
-                  <h4>{item.title}</h4>
-                  <small className="text-muted">Owner: {item.owner_id}</small>
+                  <BiTrash size="1.25rem" />
                 </Button>
-              </Link>
+                <Modal
+                  show={modalShow}
+                  onHide={handleModalClose}
+                  backdrop="static"
+                  keyboard={false}
+                >
+                  <Modal.Header>
+                    <Modal.Title>Delete Board?</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    Deleting a board would also delete all of the associated
+                    tasks and lists. Are you sure?
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={handleModalClose}>
+                      Go back
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={e => {
+                        deleteBoard(boardToDelete);
+                        handleModalClose();
+                      }}
+                    >
+                      Delete Board
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
+              </div>
             );
           })}
           <Button

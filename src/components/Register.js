@@ -26,6 +26,8 @@ function Register() {
       setRegisterSuccess(response.status === 200);
     } catch (error) {
       console.error(error);
+      setRegisterSuccess(false);
+      setErrorMessage(error.response.data);
     }
   };
 

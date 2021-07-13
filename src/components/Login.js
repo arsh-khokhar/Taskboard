@@ -4,6 +4,7 @@ import Alert from "react-bootstrap/Alert";
 import Axios from "axios";
 import Form from "react-bootstrap/Form";
 import {Button} from "react-bootstrap";
+import {Navbar, Nav, NavDropdown} from "react-bootstrap";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -26,11 +27,16 @@ function Login() {
       if (response.status === 200) {
         sessionStorage.setItem("auth-token", response.data);
         sessionStorage.setItem("auth-user", email);
+        sessionStorage.setItem("isLoggedIn", true);
         setLoginSuccess(true);
+        window.location.replace("/");
       } else {
         setLoginSuccess(false);
+        setErrorMessage("There was an error");
       }
     } catch (error) {
+      setLoginSuccess(false);
+      setErrorMessage(error.response.data);
       console.error(error);
     }
   };
@@ -47,7 +53,7 @@ function Login() {
     <Fragment>
       <Alert
         style={{
-          visibility: loginSuccess === false ? "visible" : "hidden"
+          display: loginSuccess === false ? "block" : "none"
         }}
         variant="danger"
       >
