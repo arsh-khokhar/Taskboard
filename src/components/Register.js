@@ -4,6 +4,7 @@ import Alert from "react-bootstrap/Alert";
 import Axios from "axios";
 import Form from "react-bootstrap/Form";
 import {Button} from "react-bootstrap";
+import tbConsts from "../constants";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -16,13 +17,10 @@ function Register() {
     e.preventDefault();
     try {
       const registerData = {email, password};
-      const response = await Axios.post(
-        "http://localhost:5000/api/users/register",
-        {
-          email: registerData.email,
-          password: registerData.password
-        }
-      );
+      const response = await Axios.post(tbConsts.apiEndPoints.REGISTER, {
+        email: registerData.email,
+        password: registerData.password
+      });
       setRegisterSuccess(response.status === 200);
     } catch (error) {
       console.error(error);

@@ -6,6 +6,7 @@ import {Button} from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import {BiTrash} from "react-icons/bi";
 import Modal from "react-bootstrap/Modal";
+import tbConsts from "../constants";
 
 function Home() {
   const [newBoardName, setNewBoardName] = useState(null);
@@ -31,10 +32,14 @@ function Home() {
 
   const getBoards = async () => {
     try {
-      const response = await Axios.get("http://localhost:5000/api/boards/", {
+      const response = await Axios.get(tbConsts.apiEndPoints.BOARDS, {
         headers: {
-          "auth-user": sessionStorage.getItem("auth-user"),
-          "auth-token": sessionStorage.getItem("auth-token")
+          [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+            tbConsts.authHeaderKeys.USER
+          ),
+          [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+            tbConsts.authHeaderKeys.TOKEN
+          )
         }
       });
       setUserBoards(response.data);
@@ -54,12 +59,16 @@ function Home() {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/boards/delete/" + toDelete,
+        tbConsts.apiEndPoints.BOARD_DELETE + `/${toDelete}`,
         {},
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -76,12 +85,16 @@ function Home() {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/boards/",
+        tbConsts.apiEndPoints.BOARDS,
         {title: newBoardName},
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -120,7 +133,7 @@ function Home() {
     return (
       <Fragment>
         <h4 class="text-center" style={{color: "white"}}>
-          Welcome, {sessionStorage.getItem("auth-user")}!
+          Welcome, {sessionStorage.getItem(tbConsts.authHeaderKeys.USER)}!
         </h4>
         <CardDeck style={{margin: "1rem"}}>
           {user_boards.map((item, index) => {

@@ -5,6 +5,7 @@ import Axios from "axios";
 import Form from "react-bootstrap/Form";
 import {Button} from "react-bootstrap";
 import {Navbar, Nav, NavDropdown} from "react-bootstrap";
+import tbConsts from "../constants";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,17 +18,14 @@ function Login() {
     e.preventDefault();
     try {
       const loginData = {email, password};
-      const response = await Axios.post(
-        "http://localhost:5000/api/users/login",
-        {
-          email: loginData.email,
-          password: loginData.password
-        }
-      );
+      const response = await Axios.post(tbConsts.apiEndPoints.LOGIN, {
+        email: loginData.email,
+        password: loginData.password
+      });
       if (response.status === 200) {
-        sessionStorage.setItem("auth-token", response.data);
-        sessionStorage.setItem("auth-user", email);
-        sessionStorage.setItem("isLoggedIn", true);
+        sessionStorage.setItem(tbConsts.authHeaderKeys.TOKEN, response.data);
+        sessionStorage.setItem(tbConsts.authHeaderKeys.USER, email);
+        sessionStorage.setItem(tbConsts.authHeaderKeys.LOGIN_BOOL, true);
         setLoginSuccess(true);
         window.location.replace("/");
       } else {

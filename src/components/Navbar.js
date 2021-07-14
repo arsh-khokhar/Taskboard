@@ -1,14 +1,15 @@
 import React from "react";
 import {Navbar, Nav, NavDropdown} from "react-bootstrap";
 import {useHistory} from "react-router-dom";
+import tbConsts from "../constants";
 
 function Navigation() {
   const history = useHistory();
 
   const signout = () => {
-    sessionStorage.setItem("auth-token", null);
-    sessionStorage.setItem("auth-user", null);
-    sessionStorage.setItem("isLoggedIn", null);
+    sessionStorage.setItem(tbConsts.authHeaderKeys.TOKEN, null);
+    sessionStorage.setItem(tbConsts.authHeaderKeys.USER, null);
+    sessionStorage.setItem(tbConsts.authHeaderKeys.LOGIN_BOOL, null);
     window.location.replace("/");
   };
 
@@ -23,7 +24,8 @@ function Navigation() {
             onClick={signout}
             style={{
               display:
-                sessionStorage.getItem("isLoggedIn") === "true"
+                sessionStorage.getItem(tbConsts.authHeaderKeys.LOGIN_BOOL) ===
+                "true"
                   ? "inline"
                   : "none"
             }}
@@ -34,7 +36,8 @@ function Navigation() {
             href="/login"
             style={{
               display:
-                sessionStorage.getItem("isLoggedIn") === "true"
+                sessionStorage.getItem(tbConsts.authHeaderKeys.LOGIN_BOOL) ===
+                "true"
                   ? "none"
                   : "inline"
             }}
@@ -45,7 +48,8 @@ function Navigation() {
             href="/register"
             style={{
               display:
-                sessionStorage.getItem("isLoggedIn") === "true"
+                sessionStorage.getItem(tbConsts.authHeaderKeys.LOGIN_BOOL) ===
+                "true"
                   ? "none"
                   : "inline"
             }}

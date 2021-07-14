@@ -7,7 +7,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Image from "react-bootstrap/Image";
 import Axios from "axios";
-import "./App.css";
+import "../App.css";
 import {Button} from "react-bootstrap";
 import InputGroup from "react-bootstrap/InputGroup";
 import {Card} from "react-bootstrap";
@@ -19,6 +19,7 @@ import "react-bootstrap-typeahead/css/Typeahead.css";
 import {Typeahead} from "react-bootstrap-typeahead";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import tbConsts from "../constants";
 
 function Board(props) {
   const boardId = props.match.params.board_id;
@@ -43,7 +44,9 @@ function Board(props) {
   const [newListTitle, setNewListTitle] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState(null);
   const [newTaskDesc, setNewTaskDesc] = useState(null);
-  const [user, setUser] = useState(sessionStorage.getItem("auth-user"));
+  const [user, setUser] = useState(
+    sessionStorage.getItem(tbConsts.authHeaderKeys.USER)
+  );
   const listFormRef = useRef(null);
   const taskFormRef = useRef(null);
   const collabTypeAheadRef = useRef();
@@ -353,12 +356,16 @@ function Board(props) {
     try {
       const toSend = columns;
       const response = await Axios.post(
-        "http://localhost:5000/api/tasks/reorder",
+        tbConsts.apiEndPoints.TASK_REORDER,
         toSend,
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -409,11 +416,15 @@ function Board(props) {
   const getBoardContents = async () => {
     try {
       const response = await Axios.get(
-        "http://localhost:5000/api/boards/" + boardId,
+        tbConsts.apiEndPoints.BOARDS + "/" + boardId,
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -444,14 +455,20 @@ function Board(props) {
     }
     try {
       const response = await Axios.post(
-        `http://localhost:5000/api/boards/${boardId}/add_collab/`,
+        tbConsts.apiEndPoints.BOARDS +
+          `/${boardId}` +
+          tbConsts.apiEndPoints.ADD_COLLAB,
         {
           user_id: newCollab
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -472,14 +489,20 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        `http://localhost:5000/api/boards/${boardId}/remove_collab/`,
+        tbConsts.apiEndPoints.BOARDS +
+          `/${boardId}` +
+          tbConsts.apiEndPoints.REMOVE_COLLAB,
         {
           user_id: toRemove
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -497,14 +520,20 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        `http://localhost:5000/api/boards/${boardId}/update/`,
+        tbConsts.apiEndPoints.BOARDS +
+          `/${boardId}` +
+          tbConsts.apiEndPoints.UPDATE,
         {
           board_title: newBoardTitle
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -528,7 +557,7 @@ function Board(props) {
     const tasks = columns[activeForm.list_id].tasks;
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/tasks/",
+        tbConsts.apiEndPoints.TASKS,
         {
           title: newTaskTitle,
           description: newTaskDesc,
@@ -537,8 +566,12 @@ function Board(props) {
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -577,12 +610,16 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/tasks/update",
+        tbConsts.apiEndPoints.TASK_UPDATE,
         toSend,
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -604,14 +641,18 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/tasks/delete/",
+        tbConsts.apiEndPoints.TASK_DELETE,
         {
           task_id: toDelete
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -629,12 +670,16 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/lists/",
+        tbConsts.apiEndPoints.LISTS,
         {board_id: boardId, title: newListTitle},
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -657,15 +702,19 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/lists/update",
+        tbConsts.apiEndPoints.LIST_UPDATE,
         {
           list_id: activeForm.list_id,
           title: newListTitle
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );
@@ -686,14 +735,18 @@ function Board(props) {
     setReload(false);
     try {
       const response = await Axios.post(
-        "http://localhost:5000/api/lists/delete/",
+        tbConsts.apiEndPoints.LIST_DELETE,
         {
           list_id: toDelete
         },
         {
           headers: {
-            "auth-user": sessionStorage.getItem("auth-user"),
-            "auth-token": sessionStorage.getItem("auth-token")
+            [tbConsts.authHeaderKeys.USER]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.USER
+            ),
+            [tbConsts.authHeaderKeys.TOKEN]: sessionStorage.getItem(
+              tbConsts.authHeaderKeys.TOKEN
+            )
           }
         }
       );

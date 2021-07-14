@@ -1,10 +1,10 @@
 import "./App.css";
-import Home from "./Home";
-import Board from "./Board";
+import Home from "./components/Home";
+import Board from "./components/Board";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import {Route} from "react-router-dom";
-import Navigation from "./Navbar";
+import Navigation from "./components/Navbar";
 
 function App() {
   return (
