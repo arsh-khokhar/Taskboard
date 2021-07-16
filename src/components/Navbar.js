@@ -15,7 +15,16 @@ function Navigation() {
 
   return (
     <Navbar expand="lg" variant="dark" className="navbar">
-      <Navbar.Brand href="/">Taskboard</Navbar.Brand>
+      <Navbar.Brand href="/">
+        <img
+          src="/logo512.png"
+          width="30"
+          height="30"
+          className="d-inline-block align-top"
+          style={{marginRight: "0.5rem", marginTop: "0.2rem"}}
+        />
+        Taskboard
+      </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">

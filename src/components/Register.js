@@ -30,6 +30,10 @@ function Register() {
   };
 
   useEffect(() => {
+    document.body.className = "logoback";
+  });
+
+  useEffect(() => {
     if (registerSuccess === true) {
       history.push({
         pathname: "/Login"

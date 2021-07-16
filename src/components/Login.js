@@ -39,6 +39,33 @@ function Login() {
     }
   };
 
+  const loginAsDemo = async () => {
+    try {
+      const response = await Axios.post(tbConsts.apiEndPoints.LOGIN, {
+        email: "test@email.com",
+        password: "testing123"
+      });
+      if (response.status === 200) {
+        sessionStorage.setItem(tbConsts.authHeaderKeys.TOKEN, response.data);
+        sessionStorage.setItem(tbConsts.authHeaderKeys.USER, "test@email.com");
+        sessionStorage.setItem(tbConsts.authHeaderKeys.LOGIN_BOOL, true);
+        setLoginSuccess(true);
+        window.location.replace("/");
+      } else {
+        setLoginSuccess(false);
+        setErrorMessage("There was an error");
+      }
+    } catch (error) {
+      setLoginSuccess(false);
+      setErrorMessage(error.response.data);
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    document.body.className = "logoback";
+  });
+
   useEffect(() => {
     if (loginSuccess === true) {
       history.push({
@@ -81,8 +108,33 @@ function Login() {
         <Form.Text className="text-center" style={{margin: "1rem 0 1rem 0"}}>
           Not registered yet?
         </Form.Text>
-        <Button href="/register" block variant="outline-light">
+        <Button
+          href="/register"
+          block
+          variant="light"
+          style={{marginBottom: "1rem"}}
+        >
           Create an account
+        </Button>
+        <Form.Text
+          style={{
+            margin: "1rem 0 1rem 0",
+            display: "inline",
+            color: "lightgray"
+          }}
+        >
+          Wanna try Taskboard?
+        </Form.Text>
+        <Button
+          size="sm"
+          variant="link"
+          style={{
+            display: "inline-block",
+            color: "lightseagreen"
+          }}
+          onClick={loginAsDemo}
+        >
+          Login as demo user automatically
         </Button>
       </Form>
     </Fragment>

@@ -9,6 +9,12 @@ body {
   background-attachment: fixed;
 }
 
+body.logoback {
+  background-image: url('logoback.jpg') !important;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
 .scrolling::-webkit-scrollbar {
   width: 0.5em;
   height: 0.5rem;
