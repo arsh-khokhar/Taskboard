@@ -6,9 +6,15 @@ Taskboard is a Kanban style project management application with drag and drop st
 
 > **_NOTE:_**  Please use the **login as demo user** button on the login page for quick login without any signup.
 
+![Login](screenshots/login.png)
+
+![Home](screenshots/home.png)
+
+![Board](screenshots/board.png)
+
 ### Key features
 
-- Creating/Deleting multiple porject boards per user
+- Creating/Deleting multiple project boards per user
 - Editing project board name after creation
 - Adding/Removing collaborators to a project board
 - Adding/Removing lists in a project board
