@@ -108,7 +108,7 @@ body::-webkit-scrollbar-thumb {
 .board-delete-button {
   background-color: #222222dd;
   color: white;
-  opacity: 75%;
+  opacity: 0.75;
   margin-top: -5.5rem;
   margin-left: -3rem;
   margin-right: 1rem;
