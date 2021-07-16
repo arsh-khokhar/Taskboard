@@ -4,7 +4,7 @@ Taskboard is a Kanban style project management application with drag and drop st
 
 ## Try it out [here](https://arsh-taskboard.netlify.app/)
 
-> **_NOTE:_**  Please use the login as demo user button on the login page for quick login without any signup.
+> **_NOTE:_**  Please use the **login as demo user** button on the login page for quick login without any signup.
 
 ### Key features
 
